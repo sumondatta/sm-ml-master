@@ -1,0 +1,1377 @@
+studies:
+- citation: Evett, S.R., Marek, G.W., Copeland, K.S., Colaizzi, P.D., Brauer, D.K., et al. (2025). The
+    Bushland, Texas, maize evapotranspiration, growth, and yield dataset Collection. Scientific Data 12.
+  location: Bushland, Texas High Plains, USA (USDA-ARS CPRL/SWMRU)
+  lat_lon: 35.186714, -102.094189 (elev 1170 m)
+  crop: Maize (grain)
+  irrigation_method: Sprinkler (LEPA/spray) + large weighing lysimeters; full and deficit treatments;
+    6 seasons 1989, 1990, 1994, 2013, 2016, 2018
+  depths_cm: 10 to 230 cm in 20-cm increments (neutron probe access tubes inside each of 4 lysimeters
+    and in surrounding fields)
+  sensor: Field-calibrated neutron probe (CPN 503DR); 15-min lysimeter mass, microclimate
+  soil_texture_reported: Yes - Pullman clay loam, fine mixed superactive thermic Torrertic Paleustoll;
+    texture/horizon data published
+  salinity_reported: No (not a salinity site)
+  data_availability: 'open data repository - Ag Data Commons / agdatacommons.nal.usda.gov and catalog.data.gov;
+    CSV, public domain (US Gov work). Separate component datasets: ''Soil Water Content Data for The Bushland,
+    Texas Large Weighing Lysimeter Experiments'''
+  doi_or_url: https://doi.org/10.1038/s41597-025-04539-2
+  why_valuable: 'This is the single best-curated irrigated multi-depth soil water dataset in the world:
+    35+ years, 12 depths, paired lysimeter ET ground truth, full weather, full agronomy. Should be the
+    anchor/benchmark of your database.'
+  confidence: confirmed
+- citation: Marek, G.W., Evett, S.R., Copeland, K.S., et al. (2025). The Bushland, Texas, alfalfa, soybean,
+    sunflower, and winter wheat evapotranspiration, growth, and yield dataset collections. Scientific
+    Data 12.
+  location: Bushland, Texas, USA
+  lat_lon: 35.1867, -102.0942
+  crop: Alfalfa, soybean, sunflower, winter wheat
+  irrigation_method: Sprinkler + weighing lysimeters, full and deficit
+  depths_cm: 10-230 cm, 20-cm increments
+  sensor: Neutron probe
+  soil_texture_reported: Yes - Pullman clay loam
+  salinity_reported: 'No'
+  data_availability: open data repository - Ag Data Commons, CSV
+  doi_or_url: https://doi.org/10.1038/s41597-025-06225-9
+  why_valuable: Extends the Bushland collection to 4 more crops with identical protocol - lets you train
+    crop-generalization without changing site/soil confounders.
+  confidence: confirmed
+- citation: USDA-ARS (2023). Soil Water Content Data for The Bushland, Texas, Winter Wheat Experiments.
+    Ag Data Commons dataset.
+  location: Bushland, Texas, USA
+  crop: Winter wheat
+  irrigation_method: Sprinkler, full/deficit lysimeter plots
+  depths_cm: 10-230 cm, 20-cm increments
+  sensor: Neutron probe
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: open data repository - https://agdatacommons.nal.usda.gov/articles/dataset/.../24856092
+  doi_or_url: agdatacommons record 24856092 (DOI unknown, needs verification)
+  why_valuable: Standalone soil-water-only file, easiest direct ingest of the Bushland family.
+  confidence: confirmed
+- citation: USDA-ARS (2023). Growth and Yield Data for the Bushland, Texas, Cotton Datasets (and companion
+    soil water content dataset). Ag Data Commons.
+  location: Bushland, Texas, USA
+  crop: Upland cotton (Gossypium hirsutum)
+  irrigation_method: Sprinkler/SDI, lysimeter
+  depths_cm: 10-230 cm, 20-cm increments (companion SWC file)
+  sensor: Neutron probe
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: open data repository - agdatacommons record 24856899
+  doi_or_url: unknown
+  why_valuable: Cotton is under-represented in open multi-depth SM data; this is one of the few.
+  confidence: confirmed
+- citation: 'Gasch, C.K., Brown, D.J., Brooks, E.S., et al. Data from: A field-scale sensor network data
+    set for monitoring and modeling the spatial and temporal variation of soil moisture in a dryland agricultural
+    field (Cook Agronomy Farm). Ag Data Commons / Vadose Zone Journal.'
+  location: Cook Agronomy Farm, Pullman, Washington, USA
+  lat_lon: approx 46.78, -117.09
+  crop: Winter wheat / spring crops rotation
+  irrigation_method: rainfed control (dryland) - use as the non-irrigated contrast class
+  depths_cm: 30, 60, 90, 120, 150 cm
+  sensor: Decagon/METER capacitance (EC-TM/5TE type), hourly and daily VWC, soil T, bulk EC
+  soil_texture_reported: Yes - Palouse silt loam series mapped at each of 42 nodes
+  salinity_reported: Bulk EC reported (not salinity per se)
+  data_availability: open data repository - Ag Data Commons; also mirrored on Kaggle as 'Soil Moisture
+    data from field scale sensor network' (user sathyanarayanrao89)
+  doi_or_url: https://data.nal.usda.gov/dataset/data-field-scale-sensor-network-data-set-monitoring-and-modeling-spatial-and-temporal-variation-soil-moisture-dryland-agricultural-field
+  why_valuable: 42 locations x 5 depths x 15+ years is the densest open field-scale profile network in
+    US agriculture. Essential rainfed counterfactual for an irrigated-vs-rainfed classifier.
+  confidence: confirmed
+- citation: 'Anon. (2025). Time-Series Analysis and Learning Approaches for Soil Moisture Prediction in
+    Precision Irrigation: Dataset and Code. Zenodo record 15745040.'
+  location: Gallipoli, Puglia (Apulia), southern Italy - experimental agricultural field
+  crop: Mediterranean field crop (precision irrigation trial)
+  irrigation_method: Drip / precision irrigation with logged irrigation events
+  depths_cm: 30 and 60 cm
+  sensor: Buried soil water content probes, 15-min interval
+  soil_texture_reported: unknown
+  salinity_reported: unknown
+  data_availability: open data repository - https://zenodo.org/records/15745040 (data + code)
+  doi_or_url: https://zenodo.org/records/15745040
+  why_valuable: 'Rare: 15-min multi-depth SM PLUS explicit irrigation event log PLUS precipitation/temperature
+    PLUS reference ML code. Directly ingestible as a training set.'
+  confidence: confirmed
+- citation: Anon. (2025). Datasets analyzed within the study 'Cosmic-ray neutron sensing to monitor soil
+    moisture across various irrigation methods'. Zenodo record 17177047.
+  location: unknown (Europe, likely Germany/Italy) - needs verification
+  crop: unknown
+  irrigation_method: Multiple irrigation methods compared (the whole point of the study)
+  depths_cm: CRNS integrated root-zone depth (~15-70 cm effective) plus hourly irrigation volume
+  sensor: Cosmic-ray neutron sensor (Jung-calibration and muon-calibration variants)
+  soil_texture_reported: unknown
+  salinity_reported: unknown
+  data_availability: open data repository - https://zenodo.org/records/17177047
+  doi_or_url: https://zenodo.org/records/17177047
+  why_valuable: One of the only open datasets that pairs soil moisture with hourly applied irrigation
+    volume across contrasting irrigation methods - gold for learning the irrigation-response signal.
+  confidence: confirmed
+- citation: Anon. A dataset of soil water measurements at multiple scales and depths on China's Loess
+    Plateau. Zenodo record 21859310.
+  location: Loess Plateau, China
+  crop: Multiple (cropland, orchard, grassland)
+  irrigation_method: Mostly rainfed; some irrigated terraces - needs verification per site
+  depths_cm: Multiple depths, multiple spatial scales (profile to regional)
+  sensor: Mixed (neutron probe, gravimetric, capacitance)
+  soil_texture_reported: Likely (loess silt loam)
+  salinity_reported: unknown
+  data_availability: open data repository - https://zenodo.org/records/21859310
+  doi_or_url: https://zenodo.org/records/21859310
+  why_valuable: Very large multi-scale profile compilation; useful as deep-profile (to several m) training
+    data even where irrigation is absent.
+  confidence: confirmed
+- citation: Ge, Y., Wang, J., Liu, R., et al. (2024). A dataset of shallow soil moisture for alfalfa in
+    the Ningxia irrigation area of the Yellow River. Scientific Data 11 (published 28 Nov 2024).
+  location: Ningxia Yellow River Irrigation District, NW China
+  crop: Alfalfa
+  irrigation_method: Yellow River diversion flood/border irrigation under quota schedules
+  depths_cm: Multi-depth root-zone profile (shallow profile; exact depth set needs verification - includes
+    81,564 soil temperature readings paired with SM)
+  sensor: In-situ soil moisture/temperature probes + meteorological station (49,358 met records), LAI
+    (695), growth stage (46), yield (37)
+  soil_texture_reported: unknown - verify
+  salinity_reported: Discussed as motivation (soil salinization risk); measured values need verification
+  data_availability: open data repository - Scientific Data descriptor with linked repository (Science
+    Data Bank / figshare)
+  doi_or_url: PMC11634607 / PubMed 39670272 (DOI unknown, needs verification)
+  why_valuable: Purpose-built for multi-depth root-zone SM prediction in an irrigated arid district, with
+    weather + crop + yield covariates already joined. Almost exactly your target schema.
+  confidence: confirmed
+- citation: Anon. (2024). An approach for multi-depth soil moisture prediction in alfalfa based on a dual-branch
+    combined model. Computers and Electronics in Agriculture 224.
+  location: Ningxia, China (companion to the dataset above)
+  crop: Alfalfa
+  irrigation_method: Yellow River irrigation district
+  depths_cm: Multiple root-zone depths
+  sensor: In-situ probes
+  soil_texture_reported: unknown
+  salinity_reported: unknown
+  data_availability: figures only (digitizable) + companion open dataset
+  doi_or_url: ScienceDirect S0168169924004290
+  why_valuable: Published baseline architecture and error metrics for exactly your task - use as the benchmark
+    to beat.
+  confidence: confirmed
+- citation: Smith, A.B., Walker, J.P., Western, A.W., Young, R.I., Ellett, K.M., Pipunic, R.C., et al.
+    (2012). The Murrumbidgee soil moisture monitoring network data set. Water Resources Research 48, W07701.
+  location: Murrumbidgee River Catchment (82,000 km2), NSW, Australia - includes the Yanco/Coleambally
+    irrigation area (rice, cotton, maize)
+  lat_lon: Yanco focus area approx -34.6, 146.1
+  crop: Irrigated rice, cotton, maize, wheat + dryland pasture
+  irrigation_method: Flood/border (rice, Coleambally Irrigation Area), some centre pivot
+  depths_cm: 0-5 (or 0-8), 0-30, 30-60, 60-90 cm
+  sensor: Campbell CS616 water content reflectometer; Stevens Hydra Probe for 0-5 cm
+  soil_texture_reported: Yes - soil property data provided as ancillary
+  salinity_reported: unknown
+  data_availability: open data repository - http://www.oznet.org.au (free download) and via ISMN (OZNET
+    network)
+  doi_or_url: https://doi.org/10.1029/2012WR011976
+  why_valuable: Longest continuous open profile record (2001-present) that includes genuinely irrigated
+    broadacre fields. SMAP/SMOS core cal-val quality.
+  confidence: confirmed
+- citation: 'Caldwell, T.G., Bongiovanni, T., Cosh, M.H., Jackson, T.J., Colliander, A., et al. (2019).
+    The Texas Soil Observation Network: A Comprehensive Soil Moisture Dataset for Remote Sensing and Land
+    Surface Model Validation. Vadose Zone Journal 18:190034.'
+  location: Fredericksburg, Texas (Pedernales River, 36-km EASE2 grid cell, ~1300 km2), USA
+  lat_lon: approx 30.27, -98.87
+  crop: Mixed rangeland/pasture, limited cropland - mostly NOT irrigated
+  irrigation_method: rainfed control (use as non-irrigated reference)
+  depths_cm: 5, 10, 20, 50 cm
+  sensor: Campbell CS655 / Stevens Hydra Probe, 5-min sampling averaged hourly; co-located precipitation
+  soil_texture_reported: 'Yes'
+  salinity_reported: Bulk EC from CS655
+  data_availability: open data repository - Univ. of Texas Bureau of Economic Geology TxSON portal + ISMN
+  doi_or_url: https://doi.org/10.2136/vzj2019.04.0034
+  why_valuable: 40 nested stations x 4 depths, CS655 (which outputs bulk EC and permittivity) - directly
+    useful for your clay/salinity sensor-error problem.
+  confidence: confirmed
+- citation: Kimball, B.A., et al. (2017). Data from the Arizona FACE (Free-Air CO2 Enrichment) Experiments
+    on Wheat at Ample and Limiting Levels of Water and Nitrogen. Open Data Journal for Agricultural Research
+    3.
+  location: Maricopa Agricultural Center, Maricopa, Arizona, USA
+  lat_lon: approx 33.068, -111.972
+  crop: Spring wheat (plus companion cotton and sorghum FACE datasets)
+  irrigation_method: Flood/level-basin and drip; 100% and 50% ET replacement (deficit)
+  depths_cm: Neutron probe profile through the root zone (typically 0-210 cm in 20-30 cm increments -
+    verify exact set in the file headers)
+  sensor: Field-calibrated neutron probe
+  soil_texture_reported: Yes - Trix/Casa Grande sandy clay loam
+  salinity_reported: unknown
+  data_availability: open data repository - 23 separate files, free download from odjar.org; includes
+    soil moisture, weather, canopy temperature, energy balance, phenology, yield
+  doi_or_url: https://odjar.org (article 18152) - DOI unknown
+  why_valuable: Fully open, deficit-vs-full irrigation contrast, arid flood-irrigated system, with canopy
+    temperature and energy balance covariates. Very rare combination.
+  confidence: confirmed
+- citation: Anon. (2025). Simulating Water Use and Yield for Full and Deficit Flood-Irrigated Cotton in
+    Arizona, USA. Agronomy 15(9):2023.
+  location: Maricopa, Arizona, USA
+  crop: Cotton
+  irrigation_method: Flood (level basin), full and deficit
+  depths_cm: Profile soil water, likely 0-200 cm - verify
+  sensor: Neutron probe
+  soil_texture_reported: 'Yes'
+  salinity_reported: unknown
+  data_availability: figures only (digitizable); underlying MAC data partly in ODjAR
+  doi_or_url: https://doi.org/10.3390/agronomy15092023
+  why_valuable: Flood irrigation is badly under-sampled in ML soil-moisture work; arid Sonoran Desert
+    end-member.
+  confidence: confirmed
+- citation: Anon. (2024). An agro-physiological dataset on industrial tomatoes from nine years of field
+    experiments conducted with alternative water-saving strategies in Mediterranean environments. Data
+    in Brief 54.
+  location: Capitanata plain, Foggia, Apulia, southern Italy
+  lat_lon: approx 41.46, 15.50
+  crop: Industrial/processing tomato
+  irrigation_method: Drip, with water-saving/deficit and full treatments; 2005-2006 and 2012-2018
+  depths_cm: 0-20, 20-40, 40-50, 50-60 cm (soil water tension); 2017-2018 wireless VWC at 30 and 60 cm
+  sensor: WATERMARK granular matrix (soil water tension) + wireless capacitance VWC probes
+  soil_texture_reported: Yes - silty clay Capitanata soils
+  salinity_reported: Some trials used saline irrigation water - verify
+  data_availability: open data repository - Data in Brief supplementary (Mendeley Data); CSV/XLSX
+  doi_or_url: ScienceDirect S2352340924001963 / PMC10907177
+  why_valuable: Nine seasons, four depths, explicit water-saving treatments. One of the largest open Mediterranean
+    irrigated datasets. Also gives you tension-to-VWC pairing.
+  confidence: confirmed
+- citation: Anon. (2025). Smart agriculture dataset in a tomato cultivation under different irrigation
+    regimes. Data in Brief.
+  location: Mediterranean (Greece or Italy) - verify
+  crop: Tomato
+  irrigation_method: Multiple irrigation regimes (full/deficit)
+  depths_cm: Multiple - verify
+  sensor: IoT soil moisture sensor network
+  soil_texture_reported: unknown
+  salinity_reported: unknown
+  data_availability: open data repository - Data in Brief supplementary
+  doi_or_url: PMC12002878
+  why_valuable: Treatment-labelled irrigation regimes with sensor time series.
+  confidence: confirmed
+- citation: 'Anon. Datasets from the HubIS project: ground sensor networks and remote sensing in experimental
+    maize and cotton fields, Falani, Thessaly, central Greece.'
+  location: Falani, Thessaly, Greece
+  crop: Maize and cotton
+  irrigation_method: Sprinkler / drip (irrigated Thessaly plain)
+  depths_cm: Teros 10 sensors at multiple depths - verify exact set
+  sensor: METER Teros 10
+  soil_texture_reported: unknown
+  salinity_reported: unknown
+  data_availability: on request / project portal - needs verification
+  doi_or_url: unknown
+  why_valuable: Greek irrigated maize/cotton is a data gap; pairs ground sensors with satellite.
+  confidence: confirmed
+- citation: Anon. Soil Moisture Sensor Information Enhanced by Statistical Methods in a Reclaimed Water
+    Irrigation Framework. Sensors 22(20):8062.
+  location: Spain (reclaimed water irrigation district) - verify
+  crop: unknown - verify
+  irrigation_method: Drip with reclaimed/treated wastewater
+  depths_cm: Multiple - verify
+  sensor: Capacitance soil moisture sensors
+  soil_texture_reported: unknown
+  salinity_reported: Likely (reclaimed water raises EC) - verify
+  data_availability: figures only (digitizable); MDPI data-availability statement may point to a repository
+  doi_or_url: https://doi.org/10.3390/s22208062
+  why_valuable: Reclaimed-water irrigation is exactly the salinity-confounded sensor case you care about.
+  confidence: confirmed
+- citation: Anon. (2024). Identification of irrigation events using Bayesian statistics-based change detection
+    and soil moisture measurements. Agricultural Water Management 302.
+  location: UNL Agricultural Research and Development Center, Mead, Nebraska, USA
+  lat_lon: approx 41.16, -96.47
+  crop: Maize / soybean rotation
+  irrigation_method: Center pivot (two irrigated farmlands), 2014-2020
+  depths_cm: 10, 25, 50 cm
+  sensor: In-situ soil moisture probes (capacitance/TDR - verify), continuous
+  soil_texture_reported: Yes - Tomek/Filbert silty clay loam
+  salinity_reported: 'No'
+  data_availability: figures only (digitizable); underlying data likely obtainable from Carbon Sequestration
+    Program / AmeriFlux
+  doi_or_url: ScienceDirect S0378377424003342
+  why_valuable: 7 years, 3 depths, and the paper's whole method is detecting irrigation events from SM
+    - a ready-made labelling approach for building irrigation labels across your corpus.
+  confidence: confirmed
+- citation: Suyker, A.E., Verma, S.B., et al. AmeriFlux BASE US-Ne1 (irrigated continuous maize), US-Ne2
+    (irrigated maize-soybean), US-Ne3 (rainfed maize-soybean), Mead, Nebraska.
+  location: Mead, Nebraska, USA (UNL ARDC)
+  lat_lon: 'US-Ne1: 41.1651, -96.4766'
+  crop: Maize (continuous) and maize-soybean rotation
+  irrigation_method: Center pivot (Ne1, Ne2); Ne3 is the rainfed control
+  depths_cm: AmeriFlux BASE SWC_1_1_1 ... SWC_1_N_1 at nominal 10, 25, 50, 100 cm (varies by year)
+  sensor: TDR / heat-dissipation / capacitance depending on era; half-hourly
+  soil_texture_reported: Yes - Yutan/Tomek silty clay loam
+  salinity_reported: 'No'
+  data_availability: open data repository - AmeriFlux BASE, https://ameriflux.lbl.gov/doi/AmeriFlux/US-Ne1
+    ; CC-BY-4.0 with data-use policy; also mirrored on Ag Data Commons
+  doi_or_url: https://doi.org/10.17190/AMF/1246084 (US-Ne1 - verify exact DOI)
+  why_valuable: 20+ years half-hourly, with a PERFECTLY MATCHED rainfed control 1 km away. This is the
+    ideal irrigated/rainfed paired training pair, plus full flux/ET and meteorology.
+  confidence: confirmed
+- citation: 'AmeriFlux irrigated cropland sites: US-Tw3 (alfalfa, Sacramento-San Joaquin Delta CA), US-Bi1/US-Bi2
+    (Bouldin alfalfa/corn, CA), US-Twt (rice, flooded, CA), US-HRA/US-HRC (Humnoke, Arkansas rice), US-ARM
+    (Oklahoma, partly irrigated).'
+  location: California Central Valley/Delta and Arkansas, USA
+  crop: Alfalfa, maize, rice
+  irrigation_method: Flood (rice), surface/sprinkler (alfalfa, corn)
+  depths_cm: Typically 2, 5, 10, 20, 50, 100 cm SWC_* variables (site-dependent)
+  sensor: Campbell CS616/CS655, METER 5TM/TEROS12
+  soil_texture_reported: Site metadata (BADM) includes texture
+  salinity_reported: Some Delta peat sites report EC
+  data_availability: open data repository - AmeriFlux BASE + BADM, CC-BY-4.0
+  doi_or_url: https://ameriflux.lbl.gov (per-site DOIs)
+  why_valuable: Free, harmonized, already in a single CSV schema with weather. Fastest bulk win for irrigated
+    multi-depth SM in the US.
+  confidence: recalled
+- citation: Barker, J.B., Heeren, D.M., Neale, C.M.U., Rudnick, D.R., et al. Variable Rate Irrigation
+    of Maize and Soybean in West-Central Nebraska Under Full and Deficit Irrigation.
+  location: Brule, Nebraska (UNL West Central Water Resources Field Laboratory), USA
+  crop: Maize and soybean
+  irrigation_method: Variable rate irrigation (VRI) center pivot, full and deficit
+  depths_cm: Neutron probe profile, typically 0-180 cm in 30-cm increments - verify
+  sensor: Neutron probe + remote-sensing ET model
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: figures only (digitizable); PMC open access
+  doi_or_url: PMC7931860
+  why_valuable: VRI creates within-field irrigation gradients - a natural experiment for learning the
+    irrigation-amount to profile-SM mapping.
+  confidence: confirmed
+- citation: Anon. (2019). Soil Water Sensor Performance and Corrections with Multiple Installation Orientations
+    and Depths under Three Agricultural Irrigation Treatments. Sensors 19(13).
+  location: USA (semi-arid, clay loam) - likely Bushland/Texas High Plains, verify
+  crop: unknown - verify
+  irrigation_method: Three irrigation treatments (full/deficit/dryland)
+  depths_cm: 15.2, 45.7, 76.2 cm
+  sensor: Capacitance/EM sensors benchmarked against neutron moisture meter (NMM); horizontal insert,
+    laid-horizontal, vertical insert
+  soil_texture_reported: Yes - clay loam
+  salinity_reported: unknown
+  data_availability: figures only (digitizable); open access PMC6651115
+  doi_or_url: PMC6651115
+  why_valuable: 'DIRECTLY on your thesis: quantifies electromagnetic-sensor bias vs neutron probe in clay-rich
+    soil across irrigation treatments. Use it to build the sensor-bias correction layer of your model.'
+  confidence: confirmed
+- citation: Anon. (2023). Sensor feedback system enables automated deficit irrigation scheduling for cotton.
+    Frontiers in Plant Science 14:1149424.
+  location: Texas High Plains, USA
+  crop: Cotton
+  irrigation_method: Subsurface drip irrigation (SDI), automated deficit scheduling; drip tape 1.52 m
+    spacing buried 0.30-0.32 m
+  depths_cm: Sensors at 10, 20, 30, 50 cm; neutron access tube to 3.0 m
+  sensor: Soil water sensors (capacitance/matric) + neutron probe
+  soil_texture_reported: 'Yes'
+  salinity_reported: unknown
+  data_availability: figures only (digitizable); open access Frontiers
+  doi_or_url: https://doi.org/10.3389/fpls.2023.1149424
+  why_valuable: Four shallow depths PLUS a 3-m neutron profile in an SDI cotton system - one of the deepest
+    irrigated profiles you will find.
+  confidence: confirmed
+- citation: Anon. (2026). Transferable field-scale daily soil moisture forecasting in cotton with a minimal-input
+    LSTM for irrigation scheduling. (Elsevier, S2772375526003989).
+  location: unknown (US cotton belt likely) - verify
+  crop: Cotton
+  irrigation_method: Irrigated (scheduling application)
+  depths_cm: Field-scale daily SM, multi-depth - verify
+  sensor: In-situ probes
+  soil_texture_reported: unknown
+  salinity_reported: unknown
+  data_availability: unknown - check data availability statement
+  doi_or_url: ScienceDirect S2772375526003989
+  why_valuable: Benchmarks RF, XGBoost, SVM and LSTM on irrigated cotton SM; LSTM won. Direct methodological
+    baseline for your step 2.
+  confidence: confirmed
+- citation: Anon. (2022). Machine learning based estimation of field-scale daily, high resolution, multi-depth
+    soil moisture for the Western and Midwestern United States. (PubMed 36353602).
+  location: US West and Midwest, 100+ sites
+  crop: Mixed cropland including irrigated
+  irrigation_method: Mixed (center pivot, flood, rainfed)
+  depths_cm: Multi-depth (surface through root zone; SCAN/USCRN standard 5, 10, 20, 50, 100 cm)
+  sensor: Aggregated in-situ networks (SCAN, USCRN, Mesonets)
+  soil_texture_reported: Yes - soil properties used as QRF covariates
+  salinity_reported: 'No'
+  data_availability: open data repository - source in-situ data public; derived product availability needs
+    verification
+  doi_or_url: PMC9639422
+  why_valuable: ~1 MILLION soil moisture records already assembled with NLDAS, soil properties, climate,
+    DEM and remote-sensing covariates. This is the closest existing thing to the compilation you want
+    to build - start by reproducing their covariate stack.
+  confidence: confirmed
+- citation: Anon. Colorado sunflower water use, physiology and productivity dataset. Scientific Data (PMC12396460).
+  location: Colorado, USA (likely USDA-ARS Limited Irrigation Research Farm, Greeley)
+  lat_lon: approx 40.45, -104.64 (LIRF)
+  crop: Sunflower
+  irrigation_method: Limited/deficit sprinkler irrigation treatments
+  depths_cm: 'Neutron probe profile (LIRF standard: 0-200 cm in 20-30 cm increments) - verify'
+  sensor: Neutron probe + physiological measurements
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: open data repository - Ag Data Commons
+  doi_or_url: PMC12396460
+  why_valuable: Part of the USDA-ARS LIRF (Greeley CO) family of deficit-irrigation datasets that also
+    covers maize, wheat and sunflower - a whole cluster to mine.
+  confidence: confirmed
+- citation: Klocke, N.L., Currie, R.S., Stone, L.R., et al. Comparison of Corn, Grain Sorghum, Soybean,
+    and Sunflower under Limited Irrigation. Agronomy Journal.
+  location: Garden City, Kansas (KSU Southwest Research-Extension Center), USA
+  lat_lon: approx 37.99, -100.82
+  crop: Corn, grain sorghum, soybean, sunflower
+  irrigation_method: Limited/deficit sprinkler, Ogallala aquifer
+  depths_cm: 0-240 cm in 30-cm increments
+  sensor: Neutron attenuation, measured at planting and harvest
+  soil_texture_reported: Yes - Ulysses silt loam
+  salinity_reported: 'No'
+  data_availability: tables only (published soil water at planting/harvest by depth)
+  doi_or_url: https://doi.org/10.2134/agronj2015.0332
+  why_valuable: Four crops, same site and soil, deficit gradient - excellent crop-effect isolation, and
+    8 depths to 2.4 m.
+  confidence: confirmed
+- citation: 'Lamm, F.R., O''Brien, D.M., Rogers, D.H., et al. Corn and Sorghum ET, E, Yield, and Crop
+    Water Productivity as Affected by Irrigation Application Method: SDI versus Mid-Elevation Spray Irrigation
+    (MESA).'
+  location: Colby, Kansas (KSU Northwest Research-Extension Center), USA
+  lat_lon: approx 39.39, -101.07
+  crop: Corn and grain sorghum
+  irrigation_method: Subsurface drip (SDI) vs mid-elevation spray (MESA) center pivot
+  depths_cm: 0.10 m, then 0.20 m increments to 2.4 m (8 neutron access tubes per field)
+  sensor: Neutron probe
+  soil_texture_reported: Yes - Keith silt loam
+  salinity_reported: 'No'
+  data_availability: figures only (digitizable) + KSU Research Reports (newprairiepress.org) with tabulated
+    values
+  doi_or_url: unknown
+  why_valuable: Direct SDI-vs-sprinkler contrast with 12-depth profiles; Lamm's Colby SDI plots have 30+
+    years of continuity.
+  confidence: confirmed
+- citation: Anon. (2024). Long-term investigation of the irrigation intervals and supplementary irrigation
+    strategies effects on winter wheat in the U.S. Central High Plains based on a combination of crop
+    modeling and field studies. Agricultural Water Management.
+  location: US Central High Plains (Kansas/Colorado)
+  crop: Winter wheat
+  irrigation_method: Supplemental/limited sprinkler, varying intervals
+  depths_cm: Profile to ~2 m - verify
+  sensor: Neutron probe
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: figures only (digitizable)
+  doi_or_url: ScienceDirect S037837742400413X
+  why_valuable: Long-term irrigation-interval treatments give you the temporal-frequency dimension of
+    irrigation.
+  confidence: confirmed
+- citation: 'Pringle, H.C., Fisher, D.K., Reginelli, D.B., et al. (2019). Soybean irrigation initiation
+    in Mississippi: yield, soil moisture. Applied Engineering in Agriculture 35(1):39-50.'
+  location: Stoneville and Tribbett, Mississippi Delta, USA
+  lat_lon: Stoneville approx 33.42, -90.92
+  crop: Soybean (Sites 2 and 3 in 1:1 rotation with corn)
+  irrigation_method: Furrow irrigation (Mississippi Delta standard)
+  depths_cm: 12, 24, 36 in (30, 61, 91 cm)
+  sensor: Watermark granular matrix sensors (soil water tension, centibars)
+  soil_texture_reported: Yes - Delta alluvial silty clay loam / clay
+  salinity_reported: 'No'
+  data_availability: figures only (digitizable); full PDF free at ars.usda.gov/ARSUserFiles/60663500/Publications/Fisher/2019/
+  doi_or_url: unknown
+  why_valuable: Furrow irrigation on heavy Delta clays - the clay-content sensor problem you named, in
+    the field.
+  confidence: confirmed
+- citation: Sui, R., Baggard, J. (2015). Wireless sensor network for monitoring soil moisture and weather
+    conditions. Applied Engineering in Agriculture 31(2):193-200. (also Sui, R. 2018, Journal of Agricultural
+    Science 10(1):1-11)
+  location: Stoneville, Mississippi, USA (USDA-ARS Crop Production Systems Research Unit)
+  crop: Cotton / corn / soybean
+  irrigation_method: Furrow and center pivot
+  depths_cm: 30, 61, 91 cm (12/24/36 in)
+  sensor: Watermark 200SS wireless network
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: figures only (digitizable); PDFs free on ars.usda.gov
+  doi_or_url: unknown
+  why_valuable: Multi-year wireless network in humid irrigated row crops; Watermark tension data expands
+    your sensor-type diversity.
+  confidence: confirmed
+- citation: MSU Extension / RISER initiative. Soil moisture monitoring system comparison display, Delta
+    Research and Extension Center West Farm, Stoneville, MS (11 commercial systems side by side).
+  location: Stoneville, Mississippi, USA
+  crop: Row crops (soybean/corn/cotton)
+  irrigation_method: Furrow / center pivot
+  depths_cm: Vendor-dependent, typically 15-90 cm multi-depth
+  sensor: '11 commercial systems: Sentek Drill&Drop, AquaSpy, CropX, Watermark, Irrometer, METER, etc.'
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: on request (MSU Extension / NCAAR); some summaries published
+  doi_or_url: unknown
+  why_valuable: Co-located multi-sensor intercomparison is the ideal training set for a sensor-agnostic
+    calibration model.
+  confidence: confirmed
+- citation: Anon. Recharge and Groundwater Use in the North China Plain for Six Irrigated Crops for an
+    Eleven Year Period. PLOS ONE (PMC4308074).
+  location: North China Plain, China
+  crop: Six irrigated crops (winter wheat, summer maize, cotton, etc.)
+  irrigation_method: Flood/border irrigation from groundwater
+  depths_cm: Deep profile (to several m for recharge estimation)
+  sensor: Neutron probe / lysimeter
+  soil_texture_reported: 'Yes'
+  salinity_reported: unknown
+  data_availability: figures only (digitizable); PLOS ONE open access
+  doi_or_url: PMC4308074
+  why_valuable: 11 years x 6 irrigated crops with deep profiles - excellent for deep-layer targets.
+  confidence: confirmed
+- citation: Anon. Evaluation of the CropSyst Model during Wheat-Maize Rotations on the North China Plain
+    for Identifying Soil Evaporation Losses. (PMC5627545). Uses Luancheng and Yucheng CERN station data.
+  location: Luancheng Agro-ecosystem Station (37.85N, 114.67E) and Yucheng Comprehensive Experimental
+    Station (36.11N, 116.00E), North China Plain
+  lat_lon: 37.85, 114.67 and 36.11, 116.00
+  crop: Winter wheat - summer maize double crop
+  irrigation_method: Flood/border irrigation, deficit treatments
+  depths_cm: Profile 0-120 cm and deeper, measured every 5 days
+  sensor: Neutron probe (5-day interval)
+  soil_texture_reported: Yes - loam/silt loam
+  salinity_reported: unknown
+  data_availability: figures only (digitizable); raw data via Chinese Ecosystem Research Network (CERN,
+    cnern.org.cn) on request
+  doi_or_url: PMC5627545
+  why_valuable: CERN Luancheng/Yucheng have 25+ year neutron-probe profile archives on the world's most
+    intensively irrigated plain. Highest-value 'unlock' target - worth a direct data request.
+  confidence: confirmed
+- citation: Anon. (2023). Soil Moisture Regulation under Mulched Drip Irrigation Influences the Soil Salt
+    Distribution and Growth of Cotton in Southern Xinjiang, China. Plants 12(4):791.
+  location: Southern Xinjiang (Tarim Basin), China
+  crop: Cotton
+  irrigation_method: Mulched drip irrigation (film-mulched)
+  depths_cm: Vertical profile with horizontal transects from the drip tape (typically 0-100 cm in 20-cm
+    layers)
+  sensor: Gravimetric / TDR + soil EC
+  soil_texture_reported: 'Yes'
+  salinity_reported: YES - salt distribution is the core variable (EC/soluble salts by depth and lateral
+    distance)
+  data_availability: figures only (digitizable); MDPI open access
+  doi_or_url: https://doi.org/10.3390/plants12040791
+  why_valuable: 'Exactly your salinity-confounding case: paired SM and salt profiles under drip in a saline
+    arid soil. Digitize the 2-D contour plots.'
+  confidence: confirmed
+- citation: Anon. (2023). Simulating soil salinity dynamics, cotton yield and evapotranspiration under
+    drip irrigation by ensemble machine learning. Frontiers in Plant Science (PMC10282761).
+  location: Xinjiang, China
+  crop: Cotton
+  irrigation_method: Drip irrigation with saline irrigation water
+  depths_cm: Soil depth and distance-from-dripper as explicit model inputs
+  sensor: Soil matric potential sensors + EC
+  soil_texture_reported: Yes - bulk density reported
+  salinity_reported: YES - irrigation water salinity and soil salinity are model inputs/outputs
+  data_availability: figures only (digitizable); open access
+  doi_or_url: PMC10282761
+  why_valuable: Stacking-ensemble ML with salinity in the feature set - direct methodological template
+    for your salinity-aware model.
+  confidence: confirmed
+- citation: 'Anon. (2026). Drones empower intelligent water management: Depth dependency estimation of
+    soil moisture in cotton fields based on multimodal fusion and machine learning. (Elsevier S277237552600599X).'
+  location: Xinjiang, China (water-nitrogen coupling experiment)
+  crop: Cotton
+  irrigation_method: Mulched drip irrigation, water x nitrogen treatments
+  depths_cm: 0-20, 20-40, 40-60 cm
+  sensor: Ground SM sampling + UAV RGB, multispectral, thermal infrared
+  soil_texture_reported: unknown
+  salinity_reported: unknown
+  data_availability: figures only (digitizable); data availability statement needs checking
+  doi_or_url: ScienceDirect S277237552600599X
+  why_valuable: Quantifies how predictability decays with depth (R2 0.67 / 0.62 / 0.52 for 0-20/20-40/40-60
+    cm) - a realistic accuracy ceiling to benchmark your model against.
+  confidence: confirmed
+- citation: Anon. (2024). Interactive Effects of Mulching Width and Irrigation Management on Cotton Growth
+    and Dynamic Changes in Soil Factors in Arid Regions. Agronomy 15(8):1964.
+  location: Xinjiang, China
+  crop: Cotton
+  irrigation_method: Mulched drip, varying mulch width
+  depths_cm: Multi-layer profile - verify
+  sensor: TDR / gravimetric
+  soil_texture_reported: 'Yes'
+  salinity_reported: Likely (arid saline soils)
+  data_availability: figures only (digitizable)
+  doi_or_url: https://doi.org/10.3390/agronomy15081964
+  why_valuable: Mulch is a major surface-boundary modifier - important covariate your model will otherwise
+    miss.
+  confidence: confirmed
+- citation: Anon. (2024). Determination of threshold crop water stress index for sub-surface drip irrigated
+    maize-wheat cropping sequence in semi-arid region of Punjab. Agricultural Water Management.
+  location: Ludhiana, Punjab, India (Punjab Agricultural University)
+  lat_lon: approx 30.90, 75.81
+  crop: Maize-wheat sequence
+  irrigation_method: Subsurface drip irrigation (SDI)
+  depths_cm: Root-zone profile - verify
+  sensor: Soil moisture probes + infrared thermometry (CWSI)
+  soil_texture_reported: Yes - Typic Ustipsamment/loamy sand
+  salinity_reported: unknown
+  data_availability: figures only (digitizable)
+  doi_or_url: ScienceDirect S0378377424002920
+  why_valuable: SDI in the Indo-Gangetic Plain - a huge irrigated region with almost no open SM data.
+  confidence: confirmed
+- citation: Anon. (2021). Estimation of potential recharge through direct seeded and transplanted rice
+    fields in semi-arid regions of Punjab using HYDRUS-1D. (PMC8517302).
+  location: Punjab Agricultural University, Ludhiana, India
+  crop: Rice (direct seeded and puddled transplanted)
+  irrigation_method: Flood / continuous ponding and intermittent
+  depths_cm: 10, 20, 30, 40, 60, 100 cm
+  sensor: Frequency Domain Reflectometry (FDR)
+  soil_texture_reported: 'Yes'
+  salinity_reported: unknown
+  data_availability: figures only (digitizable); open access
+  doi_or_url: PMC8517302
+  why_valuable: Six depths under flooded rice - saturated/near-saturated regime that most SM models handle
+    badly.
+  confidence: confirmed
+- citation: IRRI AWD field experiments (2009 DS, 2009 WS, 2010 DS), Los Banos, Philippines. Published
+    in Field Crops Research / PMC3539349.
+  location: IRRI farm, Los Banos, Laguna, Philippines
+  lat_lon: approx 14.17, 121.25
+  crop: Rice (multiple cultivars)
+  irrigation_method: Alternate wetting and drying (AWD) vs continuous flooding
+  depths_cm: Tensiometers at 20 and 40 cm; piezometer water table to 100 cm
+  sensor: Porous-cup tensiometers (soil water potential) + piezometers
+  soil_texture_reported: Yes - IRRI clay
+  salinity_reported: 'No'
+  data_availability: figures only (digitizable); IRRI Dataverse (dataverse.harvard.edu/dataverse/IRRI)
+    may hold raw data - verify
+  doi_or_url: PMC3539349
+  why_valuable: Paddy AWD wetting/drying cycles at two depths - the flooded-to-unsaturated transition
+    your model must learn for rice.
+  confidence: confirmed
+- citation: Anon. Moisture and Salinity Distribution around the Root of Drip-tape-irrigated Maize Cultivated
+    in Heavy Soil of Khuzestan Province of Iran. Communications in Soil Science and Plant Analysis 53(9).
+  location: Khuzestan Province, Iran
+  crop: Maize
+  irrigation_method: Surface drip tape
+  depths_cm: 2-D grid around the dripper (depth x lateral distance)
+  sensor: Gravimetric sampling + EC
+  soil_texture_reported: Yes - heavy clay soil
+  salinity_reported: 'YES'
+  data_availability: figures only (digitizable) - 2D contour plots
+  doi_or_url: https://doi.org/10.1080/00103624.2022.2043343
+  why_valuable: Heavy clay + salinity + drip = the exact triple-confound you want the model to handle.
+  confidence: confirmed
+- citation: Anon. Salt accumulation in soils under furrow and drip irrigation using modified waters in
+    Central Iran. Eurasian Journal of Soil Science.
+  location: Central Iran
+  crop: unknown - verify
+  irrigation_method: Furrow vs drip, modified (treated/saline) waters
+  depths_cm: 0-25, 25-50, 50-75 cm
+  sensor: Gravimetric + saturated paste EC
+  soil_texture_reported: 'Yes'
+  salinity_reported: YES - primary variable, 2002 vs 2018 comparison
+  data_availability: figures only (digitizable); open access on dergipark.org.tr
+  doi_or_url: dergipark.org.tr/en/pub/ejss/article/1186388
+  why_valuable: Three depths with paired moisture and salinity under two irrigation methods.
+  confidence: confirmed
+- citation: 'Anon. Simulation of Winter Wheat Response to Saline Irrigation Using AquaCrop in the Tadla
+    Plain, Morocco: Implications for Irrigation Management. (PMC13306322).'
+  location: Tadla Plain, Morocco
+  crop: Winter wheat
+  irrigation_method: Surface/gravity irrigation with saline water
+  depths_cm: 0-30, 30-60, 60-90 cm
+  sensor: Gravimetric + EC
+  soil_texture_reported: 'Yes'
+  salinity_reported: YES - 2 to 8 dS/m across the irrigated area
+  data_availability: figures only (digitizable); open access
+  doi_or_url: PMC13306322
+  why_valuable: North African saline irrigation district; 3 depths with EC. Rare open salinity+moisture
+    pairing.
+  confidence: confirmed
+- citation: Anon. (2019). Exploring Optimal Tillage Improved Soil Characteristics and Productivity of
+    Wheat Irrigated with Different Water Qualities. Agronomy 9(5):233.
+  location: North Nile Delta, Egypt
+  crop: Wheat
+  irrigation_method: 'Surface/flood with four water qualities: Nile fresh water, wastewater, saline drainage
+    water, highly saline drainage water'
+  depths_cm: Profile layers (0-20, 20-40, 40-60 typical) - verify
+  sensor: Gravimetric + EC
+  soil_texture_reported: Yes - Nile Delta clay
+  salinity_reported: YES - four irrigation water salinity classes
+  data_availability: figures only (digitizable); MDPI open access
+  doi_or_url: https://doi.org/10.3390/agronomy9050233
+  why_valuable: A designed salinity gradient in irrigation water on heavy clay - near-perfect for isolating
+    the salinity effect on apparent soil moisture.
+  confidence: confirmed
+- citation: Anon. (2020). Effect of Planting Methods and Gypsum Application on Yield and Water Productivity
+    of Wheat under Salinity Conditions in North Nile Delta. Agronomy 10(6):853.
+  location: North Nile Delta, Egypt
+  crop: Wheat
+  irrigation_method: Surface/flood under saline conditions
+  depths_cm: Profile layers - verify
+  sensor: Gravimetric + EC
+  soil_texture_reported: Yes - clay
+  salinity_reported: 'YES'
+  data_availability: figures only (digitizable); MDPI open access
+  doi_or_url: https://doi.org/10.3390/agronomy10060853
+  why_valuable: Companion saline-irrigation dataset from the same region; amelioration treatments add
+    EC variation at constant texture.
+  confidence: confirmed
+- citation: 'Anon. Numerical and experimental analyses of subsurface flow and salt transport in fields
+    irrigated with reused drainage waters: application to Nile Delta Region, Egypt. TU Berlin doctoral
+    thesis (DepositOnce).'
+  location: Middle Nile Delta, Egypt (four wheat fields)
+  crop: Wheat
+  irrigation_method: Surface irrigation with reused drainage water
+  depths_cm: Full profile, HYDRUS-2D domain; measured soil moisture and salinity distribution
+  sensor: Gravimetric, EC, tensiometers
+  soil_texture_reported: 'Yes'
+  salinity_reported: YES - primary focus
+  data_availability: open access thesis (PDF, digitizable figures + appendix tables) - depositonce.tu-berlin.de
+  doi_or_url: https://depositonce.tu-berlin.de/items/249d0e21-ff20-4db4-bb67-a72d726402f6
+  why_valuable: Theses carry full appendix data tables that journal papers omit - a systematically under-mined
+    source. Search theses deliberately.
+  confidence: confirmed
+- citation: Anon. (2024). Integrating Deficit Irrigation Strategies and Soil-Management Systems in Almond
+    Orchards for Resilient Agriculture. Agronomy 14(10):2288.
+  location: IFAPA Alcala del Rio, Seville, SW Spain
+  lat_lon: approx 37.52, -5.97
+  crop: Almond
+  irrigation_method: Drip, regulated deficit irrigation, 2021-2023
+  depths_cm: Multi-depth capacitance profile - verify exact set
+  sensor: Capacitance probes
+  soil_texture_reported: 'Yes'
+  salinity_reported: unknown
+  data_availability: figures only (digitizable); MDPI open access
+  doi_or_url: https://doi.org/10.3390/agronomy14102288
+  why_valuable: Perennial tree crop under RDI - drip wetting-bulb dynamics differ fundamentally from row
+    crops.
+  confidence: confirmed
+- citation: Anon. (2020). Evaluation of Soil Water Content Measurements with Capacitance Probes to Support
+    Irrigation Scheduling in a 'Red Beaut' Japanese Plum Orchard. Agronomy 10(11):1757.
+  location: Spain
+  crop: Japanese plum
+  irrigation_method: Drip
+  depths_cm: Multi-depth capacitance profile
+  sensor: Capacitance probes, calibrated vs gravimetric
+  soil_texture_reported: 'Yes'
+  salinity_reported: unknown
+  data_availability: figures only (digitizable); MDPI open access
+  doi_or_url: https://doi.org/10.3390/agronomy10111757
+  why_valuable: Explicitly quantifies uncalibrated-capacitance error - feeds your sensor-bias correction
+    module.
+  confidence: confirmed
+- citation: Anon. (2025). Relationships Between Midday Stem Water Potential and Soil Water Content in
+    Grapevines and Peach and Pear Trees. Agronomy 15(5):1257.
+  location: Northeast Spain (Ebro valley / Catalonia-Aragon)
+  crop: Grapevine, peach, pear
+  irrigation_method: Drip irrigation
+  depths_cm: 0.15, 0.30, 0.45 m
+  sensor: Capacitance sensors + pressure chamber (stem water potential)
+  soil_texture_reported: 'Yes'
+  salinity_reported: unknown
+  data_availability: figures only (digitizable); MDPI open access
+  doi_or_url: https://www.mdpi.com/2073-4395/15/5/1257
+  why_valuable: Three depths, three woody crops, plus plant water status as an independent validation
+    target.
+  confidence: confirmed
+- citation: Anon. (2020). Analysis of the Variability in Soil Moisture Measurements by Capacitance Sensors
+    in a Drip-Irrigated Orchard. Sensors (PMC7570759).
+  location: Spain
+  crop: Orchard (tree crop)
+  irrigation_method: Drip
+  depths_cm: Multiple depths x multiple lateral positions relative to emitter
+  sensor: Capacitance sensors
+  soil_texture_reported: 'Yes'
+  salinity_reported: unknown
+  data_availability: figures only (digitizable); open access
+  doi_or_url: PMC7570759
+  why_valuable: Quantifies within-field sensor-placement variance - tells you the irreducible noise floor
+    for drip systems.
+  confidence: confirmed
+- citation: Espadafor, M., Orgaz, F., Testi, L., Lorite, I.J., Villalobos, F.J. Water use of irrigated
+    almond trees when subjected to water deficits. Agricultural Water Management 195.
+  location: Cordoba, Andalusia, Spain (IAS-CSIC)
+  crop: Almond
+  irrigation_method: Drip, full / moderate stress / severe stress
+  depths_cm: Soil water balance over the full root profile (neutron probe) - verify increments
+  sensor: Neutron probe + sap flow (8 trees) for independent transpiration
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: figures only (digitizable)
+  doi_or_url: ScienceDirect S037837741730313X
+  why_valuable: Three-year, three-level deficit gradient with independent sap-flow ET - strong constraint
+    for a physics-informed model.
+  confidence: confirmed
+- citation: Anon. A soil moisture dataset over the Brazilian semiarid region. Mendeley Data, dataset xrk5rfcpvg
+    (v2).
+  location: Brazilian semiarid (Caatinga / Northeast Brazil)
+  crop: Mixed rainfed and irrigated agriculture
+  irrigation_method: Mixed; includes irrigated perimeters - verify per station
+  depths_cm: 0.1 and 0.2 m at all stations; 0.1, 0.2, 0.3, 0.4 m at ~10% of stations
+  sensor: Hourly in-situ probes, Aug 2015 - Apr 2019
+  soil_texture_reported: unknown - verify
+  salinity_reported: unknown
+  data_availability: open data repository - https://data.mendeley.com/datasets/xrk5rfcpvg/2 (CC-BY)
+  doi_or_url: https://data.mendeley.com/datasets/xrk5rfcpvg/2
+  why_valuable: Large tropical-semiarid network, hourly, 4 years, some 4-depth stations. Fills the South
+    America gap.
+  confidence: confirmed
+- citation: Anon. Aquaspy soil moisture data (strawberry, Florida). Mendeley Data, dataset tr2wwpmrpj.
+  location: Florida, USA
+  crop: Strawberry
+  irrigation_method: Drip
+  depths_cm: 'AquaSpy capacitance probe: 12 sensors at 10-cm spacing, 10-120 cm'
+  sensor: AquaSpy multi-sensor capacitance probe
+  soil_texture_reported: unknown - Florida sand
+  salinity_reported: unknown
+  data_availability: open data repository - https://data.mendeley.com/datasets/tr2wwpmrpj/1
+  doi_or_url: https://data.mendeley.com/datasets/tr2wwpmrpj/1
+  why_valuable: AquaSpy gives 12 depths at 10-cm resolution - the densest vertical sampling you will find
+    in an open irrigated dataset. Ideal for training a continuous-profile model.
+  confidence: confirmed
+- citation: Anon. Smart irrigation control system data with soil moisture, flow meter and electrovalve
+    relay. Mendeley Data, dataset cjb4vy4mzj (v3).
+  location: Paraguay (commercial strawberry field), 2022
+  crop: Strawberry
+  irrigation_method: Automated drip with logged valve state and flow
+  depths_cm: unknown - likely single/shallow depth
+  sensor: Capacitive soil moisture + flow meter + valve relay state
+  soil_texture_reported: unknown
+  salinity_reported: unknown
+  data_availability: open data repository - https://data.mendeley.com/datasets/cjb4vy4mzj/3
+  doi_or_url: https://data.mendeley.com/datasets/cjb4vy4mzj/3
+  why_valuable: Rare open dataset with ACTUAL METERED irrigation volume and valve state - the control-input
+    signal most datasets lack.
+  confidence: confirmed
+- citation: Anon. Dataset on irrigation for Tomato. Mendeley Data, dataset 33cngpcrmx (v2).
+  location: unknown - verify
+  crop: Tomato
+  irrigation_method: Subsurface/underground drip, Edge-IoT automated
+  depths_cm: unknown - verify
+  sensor: DFRobot SEN0193 capacitive soil moisture sensor
+  soil_texture_reported: unknown
+  salinity_reported: unknown
+  data_availability: open data repository - https://data.mendeley.com/datasets/33cngpcrmx/2
+  doi_or_url: https://data.mendeley.com/datasets/33cngpcrmx/2
+  why_valuable: Low-cost-sensor example; useful for a sensor-class robustness test, but calibration quality
+    is low - keep it in a separate tier.
+  confidence: confirmed
+- citation: Heistermann, M., Bogena, H., Francke, T., et al. (2023). Three years of soil moisture observations
+    by a dense cosmic-ray neutron sensing cluster at an agricultural research site in north-east Germany.
+    Earth System Science Data 15:3243-3262.
+  location: Marquardt, Brandenburg, north-east Germany
+  lat_lon: approx 52.47, 12.96
+  crop: Arable rotation
+  irrigation_method: Mostly rainfed with some irrigation - verify; use as temperate control
+  depths_cm: CRNS footprint-average plus point SWC profiles (multiple depths), groundwater wells, meteorology
+  sensor: 8 permanent CRNS + temporary sensors + point SWC profiles
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: open data repository - ESSD with linked repository (GFZ Data Services), CC-BY
+  doi_or_url: https://essd.copernicus.org/articles/15/3243/2023/
+  why_valuable: 'Multi-scale: point profiles + field-average CRNS. Lets you learn point-to-field upscaling,
+    which you will need to fuse satellite covariates.'
+  confidence: confirmed
+- citation: Anon. Monitoring Irrigation in Small Orchards with Cosmic-Ray Neutron Sensors. Sensors (PMC10007241).
+  location: Small orchard site (Europe) - verify
+  crop: Orchard tree crop
+  irrigation_method: Micro-irrigation in a plot smaller than the CRNS footprint
+  depths_cm: CRNS effective depth (~15-70 cm), plus reference point sensors
+  sensor: Cosmic-ray neutron sensor + neutron transport (URANOS) correction
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: figures only (digitizable); open access
+  doi_or_url: PMC10007241
+  why_valuable: Solves the small-irrigated-field CRNS footprint problem - methodologically important if
+    you want CRNS as a cheap sensor replacement.
+  confidence: confirmed
+- citation: Anon. (2026). Enhancing soil moisture retrievals from cosmic ray neutron sensor in a peri-urban
+    agricultural landscape. Agricultural Water Management (S0378377426004452).
+  location: Peri-urban agricultural landscape - verify
+  crop: Mixed
+  irrigation_method: Mixed irrigated
+  depths_cm: CRNS integrated
+  sensor: CRNS
+  soil_texture_reported: unknown
+  salinity_reported: unknown
+  data_availability: unknown
+  doi_or_url: ScienceDirect S0378377426004452
+  why_valuable: Recent CRNS correction methods you would need to apply when ingesting COSMOS-type data.
+  confidence: confirmed
+- citation: Anon. (2025). Cosmic-ray neutron sensors provide scale-appropriate soil water content and
+    vegetation observations for eddy covariance stations in agricultural ecosystems. Agricultural and
+    Forest Meteorology (S0168192325003508).
+  location: Multiple agricultural EC sites
+  crop: Mixed cropland
+  irrigation_method: Mixed including irrigated
+  depths_cm: CRNS effective depth + point profiles
+  sensor: CRNS + EC towers
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: unknown - check data availability statement
+  doi_or_url: ScienceDirect S0168192325003508
+  why_valuable: Bridges CRNS to the AmeriFlux/ICOS flux-site archives, which is how you scale the database
+    cheaply.
+  confidence: confirmed
+- citation: Anon. Datasets for 'Multidepth Soil Sensing with Embedded Hydrothermal Stress Index Reveals
+    Stratified Stability in Hardpan-Limited Tropical Spodosols' and companion HRZSI paper. Zenodo records
+    19479857 and 20092399.
+  location: Tropical Spodosol oil palm plantation (Malaysia/Indonesia) - verify
+  crop: Oil palm
+  irrigation_method: unknown - likely rainfed with drainage management; verify
+  depths_cm: 0-10, 10-42, 42-68 cm
+  sensor: Multidepth VWC + soil temperature, with air temperature, RH, rainfall, solar irradiance
+  soil_texture_reported: Spodosol with hardpan described
+  salinity_reported: unknown
+  data_availability: open data repository - zenodo.org/records/19479857 and /20092399
+  doi_or_url: https://zenodo.org/records/19479857
+  why_valuable: Tropical sandy Spodosol end-member with a hardpan - an extreme soil-structure case that
+    will stress-test generalization.
+  confidence: confirmed
+- citation: Anon. Estimating field capacity from volumetric soil water content time series using automated
+    processing algorithms. Dryad dataset doi:10.5061/dryad.f5220r3.
+  location: Multiple, includes Florida citrus on well-drained sands
+  crop: Citrus and others
+  irrigation_method: Conventional irrigation scheduling (micro-sprinkler/drip) plus other sites
+  depths_cm: 15.2 cm (citrus); other sites 10, 40, 120 cm (Konza)
+  sensor: Hourly VWC probes
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: open data repository - Dryad, CC0
+  doi_or_url: https://doi.org/10.5061/dryad.f5220r3
+  why_valuable: Comes with the algorithm for deriving field capacity from SM time series - a useful derived
+    label (FC, wilting point) for every profile you ingest.
+  confidence: confirmed
+- citation: Anon. SSHCZO - Soil Moisture, Soil Temperature - Cole Farm (Agricultural Site) - (2017-2019).
+    CUAHSI HydroShare resource 9ee2e7f1f0ef4746a4991a32055e6812.
+  location: Susquehanna Shale Hills Critical Zone Observatory, Pennsylvania, USA
+  crop: Agricultural rotation
+  irrigation_method: rainfed control (humid temperate)
+  depths_cm: 4 depths at 4 sites
+  sensor: Stevens HydraProbe (VWC, EC, T), 10-min interval, Campbell logger
+  soil_texture_reported: 'Yes'
+  salinity_reported: Bulk EC reported
+  data_availability: open data repository - https://hydroshare.org/resource/9ee2e7f1f0ef4746a4991a32055e6812/
+  doi_or_url: HydroShare resource ID above
+  why_valuable: HydraProbe reports VWC AND bulk EC at the same point - the pairing you need to model salinity-induced
+    sensor bias.
+  confidence: confirmed
+- citation: Anon. A soil database from Queretaro, Mexico for assessment of crop and irrigation water requirements.
+    Data in Brief / figshare 10.6084/m9.figshare.22190185.v2 (PMC10319854).
+  location: Queretaro, Mexico (irrigated Bajio agricultural plots, 2 crop cycles/yr)
+  crop: Spring-summer and autumn-winter rotations
+  irrigation_method: Irrigated agricultural plots
+  depths_cm: Soil hydraulic properties by sample (not a SM time series)
+  sensor: 'Laboratory: texture, bulk density, saturated water content, field capacity, PWP, Ksat'
+  soil_texture_reported: YES - explicit sand/silt/clay percentages plus textural class, with UTM coordinates
+  salinity_reported: unknown
+  data_availability: open data repository - https://doi.org/10.6084/m9.figshare.22190185.v2
+  doi_or_url: https://doi.org/10.6084/m9.figshare.22190185.v2
+  why_valuable: 'Exactly the covariate table your project needs: georeferenced sand/silt/clay + hydraulic
+    properties over irrigated land. Use as the pattern for your soil-covariate join.'
+  confidence: confirmed
+- citation: International Soil Moisture Network (ISMN), Dorigo, W., et al. TU Wien. ismn.earth
+  location: Global - 60+ networks, 2500+ stations, 1952 to near-real-time
+  crop: Mixed; agricultural networks include spring/winter cereal station pairs
+  irrigation_method: Mixed; irrigated networks include OZNET (Yanco/Coleambally), REMEDHUS, SMOSMANIA,
+    Chinese networks
+  depths_cm: Network-dependent; typically 5, 10, 20, 50, 100 cm; some deeper
+  sensor: All types (TDR, FDR, capacitance, CS616/CS655, Hydra Probe, neutron)
+  soil_texture_reported: YES - Harmonized World Soil Database texture attached to every station, plus
+    Koppen-Geiger class and ESA CCI land cover
+  salinity_reported: No (but bulk EC where the sensor reports it)
+  data_availability: open data repository - free registration, bulk download, harmonized units, quality
+    flags. https://ismn.earth/en/data/data-download/
+  doi_or_url: https://ismn.earth
+  why_valuable: THIS IS YOUR BACKBONE. Already harmonized units, depths, QC flags, and it already joins
+    HWSD texture to every station - which is half of your stated schema. Start here, then filter stations
+    by an irrigation mask (e.g. MIRCA-OS or IrrMap) to isolate irrigated sites.
+  confidence: confirmed
+- citation: Anon. (2026). Fusing ERA5-Land and SMAP L4 for an improved global soil moisture product (1950-2025).
+    Earth System Science Data 18:1061. Includes an in-situ compilation of ~3.8 million records across
+    ISMN, CMA, Cemaden, COSMOS-Europe and SONTE-China.
+  location: Global
+  crop: Mixed
+  irrigation_method: Mixed
+  depths_cm: Surface plus root zone (ERA5-Land layers 0-7, 7-28, 28-100, 100-289 cm)
+  sensor: Compilation of all in-situ network sensor types
+  soil_texture_reported: Via model land-surface parameters
+  salinity_reported: 'No'
+  data_availability: open data repository - ESSD with linked archive, CC-BY
+  doi_or_url: https://essd.copernicus.org/articles/18/1061/2026/
+  why_valuable: The largest existing harmonized in-situ soil moisture compilation (~3.8M records) split
+    into modern validation (2015-2020) and independent historical sets. Reuse their compilation rather
+    than rebuilding it.
+  confidence: confirmed
+- citation: O, S., Orth, R. (2021). Global soil moisture data derived through machine learning trained
+    with in-situ measurements (SoMo.ml). Scientific Data 8:170. arXiv:2010.02374.
+  location: Global, 0.25 degree, 2000-2019
+  crop: Mixed
+  irrigation_method: Mixed (does NOT explicitly model irrigation - a known gap you can exploit)
+  depths_cm: 'Three layers: 0-10, 10-30, 30-50 cm'
+  sensor: Trained on ISMN in-situ; LSTM
+  soil_texture_reported: Used as predictor
+  salinity_reported: 'No'
+  data_availability: open data repository - free download
+  doi_or_url: arXiv:2010.02374 (Scientific Data DOI - verify)
+  why_valuable: Direct methodological precedent for training a global multi-layer SM model from in-situ
+    data with an LSTM. Its explicit failure to represent irrigation is the gap your project fills - frame
+    your contribution against it.
+  confidence: confirmed
+- citation: Anon. (2022). A 1 km daily soil moisture dataset over China using in situ measurement and
+    machine learning. Earth System Science Data 14:5267.
+  location: China (includes the heavily irrigated North China Plain and Xinjiang)
+  crop: Mixed cropland
+  irrigation_method: Mixed including major irrigation districts
+  depths_cm: Surface (and root zone in companion products)
+  sensor: Chinese Meteorological Administration automatic soil moisture station network (~2000+ stations)
+  soil_texture_reported: Used as predictor
+  salinity_reported: 'No'
+  data_availability: open data repository - ESSD linked archive (National Tibetan Plateau Data Center),
+    CC-BY
+  doi_or_url: https://essd.copernicus.org/articles/14/5267/2022/
+  why_valuable: Unlocks the CMA automatic soil moisture network, which covers the world's largest irrigated
+    area and is otherwise hard to access from outside China.
+  confidence: confirmed
+- citation: 'Anon. (2025). IrrMap: A Large-Scale Comprehensive Dataset for Irrigation Method Mapping.
+    arXiv:2505.08273.'
+  location: Western United States (multi-state)
+  crop: Mixed
+  irrigation_method: LABELS for center pivot, drip, flood, sprinkler - this is the point of the dataset
+  depths_cm: n/a (irrigation method labels + imagery)
+  sensor: Satellite imagery + field labels
+  soil_texture_reported: Includes ancillary layers
+  salinity_reported: 'No'
+  data_availability: open data repository - arXiv paper with public dataset release (GitHub/HuggingFace
+    - verify)
+  doi_or_url: https://arxiv.org/pdf/2505.08273
+  why_valuable: Gives you the IRRIGATION METHOD label layer to join to every georeferenced soil moisture
+    station. Without this you cannot stratify by irrigation type at scale.
+  confidence: confirmed
+- citation: 'Mehta, P., et al. MIRCA-OS: A global open-source dataset of monthly irrigated and rainfed
+    cropped areas for the 21st century. CUAHSI HydroShare resource 60a890eb841c460192c03bb590687145.'
+  location: Global, 5 arc-minute, 2000-2015
+  crop: 26 crop classes, irrigated and rainfed separately
+  irrigation_method: Irrigated vs rainfed area fractions by crop and month
+  depths_cm: n/a
+  sensor: n/a (gridded product)
+  soil_texture_reported: 'No'
+  salinity_reported: 'No'
+  data_availability: open data repository - HydroShare, GeoTIFF + CSV, open licence
+  doi_or_url: https://www.hydroshare.org/resource/60a890eb841c460192c03bb590687145/
+  why_valuable: The global irrigation mask you need to label any lat/lon station as irrigated vs rainfed,
+    by crop and by month. Pair with GMIA/GRIPC.
+  confidence: confirmed
+- citation: Anon. (2025). Long-term irrigation water use datasets from multiple Earth Observation-based
+    methods in major irrigated regions. ESSD preprint essd-2025-737.
+  location: Major global irrigated regions
+  crop: Mixed
+  irrigation_method: All; estimates applied irrigation water volume
+  depths_cm: n/a
+  sensor: Earth observation
+  soil_texture_reported: 'No'
+  salinity_reported: 'No'
+  data_availability: open data repository - ESSD preprint with linked data
+  doi_or_url: https://essd.copernicus.org/preprints/essd-2025-737/
+  why_valuable: Gives you an irrigation AMOUNT covariate where field records do not exist - a proxy forcing
+    term for your model.
+  confidence: confirmed
+- citation: 'Gupta, S., Hengl, T., Lehmann, P., Bonetti, S., Or, D. (2021). SoilKsatDB: global database
+    of soil saturated hydraulic conductivity measurements for geoscience applications. ESSD 13:1593-1612.'
+  location: Global, 13,267 measurements
+  crop: n/a (soil property)
+  irrigation_method: n/a
+  depths_cm: Measurement depth recorded per sample
+  sensor: Laboratory/field Ksat methods
+  soil_texture_reported: YES - texture, bulk density, organic carbon accompany most records
+  salinity_reported: 'No'
+  data_availability: open data repository - https://doi.org/10.5281/zenodo.3752721, open data licence,
+    with extraction and random-forest code public
+  doi_or_url: https://essd.copernicus.org/articles/13/1593/2021/
+  why_valuable: Best template for exactly what you propose - a literature-harvested, harmonized global
+    soil database with open extraction code. Read their extraction methodology before you start; also
+    a direct source of Ksat/texture covariates.
+  confidence: confirmed
+- citation: Anon. Soil water content (volumetric) at 33 kPa and 1500 kPa predicted at 6 standard depths
+    (0, 10, 30, 60, 100, 200 cm) at 250 m resolution. Zenodo record 2784001 (SoilGrids-derived).
+  location: Global
+  crop: n/a
+  irrigation_method: n/a
+  depths_cm: 0, 10, 30, 60, 100, 200 cm
+  sensor: n/a (modelled from SoilGrids)
+  soil_texture_reported: Derived from SoilGrids sand/silt/clay at the same depths
+  salinity_reported: 'No'
+  data_availability: open data repository - https://zenodo.org/records/2784001, GeoTIFF, open licence
+  doi_or_url: https://zenodo.org/records/2784001
+  why_valuable: Field capacity and wilting point at your exact target depths, globally at 250 m. Pair
+    with SoilGrids 2.0 (sand/silt/clay/BD/SOC at 0-5, 5-15, 15-30, 30-60, 60-100, 100-200 cm) as your
+    standard soil covariate stack.
+  confidence: confirmed
+- citation: Anon. Fine-resolution profile-scale data to depict the impact of tillage treatment and machine
+    traffic on agricultural soil structure and hydrologic properties. Scientific Data (PMC10694041).
+  location: Agricultural research site - verify
+  crop: Arable
+  irrigation_method: unknown - verify
+  depths_cm: Fine-resolution full profile
+  sensor: Profile imaging + hydraulic property measurement
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: open data repository - Scientific Data linked archive
+  doi_or_url: PMC10694041
+  why_valuable: Tillage and compaction alter the profile hydraulics your model will otherwise treat as
+    noise; useful as a management covariate example.
+  confidence: confirmed
+- citation: Anon. Sandy soils compatibility and least limiting water range under organic, irrigated and
+    perennials management. Scientific Reports (2025), s41598-025-06682-7.
+  location: Brazil (sandy soils) - verify
+  crop: Perennials and annual crops under organic and irrigated management
+  irrigation_method: Irrigated (method needs verification)
+  depths_cm: Multiple layers for least limiting water range
+  sensor: Soil physical characterization + water retention
+  soil_texture_reported: Yes - sandy
+  salinity_reported: 'No'
+  data_availability: open access with data availability statement - verify repository
+  doi_or_url: https://www.nature.com/articles/s41598-025-06682-7
+  why_valuable: Sandy-soil irrigated end-member with least-limiting-water-range - the low-clay side of
+    your clay-sensitivity axis.
+  confidence: confirmed
+- citation: Anon. A dataset of sugarcane crop yield, production environment, meteorological records, and
+    satellite images of commercial fields in the northeast of Sao Paulo State, Brazil. Data in Brief /
+    Scientific Data (PMC12925426).
+  location: Northeast Sao Paulo State, Brazil
+  crop: Sugarcane
+  irrigation_method: Commercial fields; mostly rainfed with supplementary/vinasse fertigation - verify
+  depths_cm: Production-environment soil classification by depth; SM time series needs verification
+  sensor: Meteorological + satellite + soil
+  soil_texture_reported: Yes - production environment classes are soil-water-capacity based
+  salinity_reported: 'No'
+  data_availability: open data repository - linked archive
+  doi_or_url: PMC12925426
+  why_valuable: Commercial-scale sugarcane with joined weather, soil and satellite; sugarcane is nearly
+    absent from open SM datasets.
+  confidence: confirmed
+- citation: Anon. Irrigation Scheduling Based on Wireless Sensors Output and Soil-Water Characteristic
+    Curve in Two Soils. Sensors (PMC7085626).
+  location: unknown - verify
+  crop: unknown - verify
+  irrigation_method: Sensor-based scheduling
+  depths_cm: Multiple - verify
+  sensor: Wireless soil moisture sensors + soil-water characteristic curve
+  soil_texture_reported: YES - two contrasting soils, which is the point
+  salinity_reported: unknown
+  data_availability: figures only (digitizable); open access
+  doi_or_url: PMC7085626
+  why_valuable: Two-soil contrast with SWCC - lets you test texture transferability directly.
+  confidence: confirmed
+- citation: Anon. (2026). Data-driven forecasting of soil moisture based on enhanced pre-processing of
+    data from on ground sensor networks. (Elsevier S1474706526004997).
+  location: unknown - verify
+  crop: unknown
+  irrigation_method: Irrigated sensor network
+  depths_cm: Multiple - verify
+  sensor: Ground sensor network
+  soil_texture_reported: unknown
+  salinity_reported: unknown
+  data_availability: unknown
+  doi_or_url: ScienceDirect S1474706526004997
+  why_valuable: Pre-processing pipeline (gap filling, outlier removal, drift correction) for messy field
+    sensor networks - you will need exactly this for a heterogeneous compiled database.
+  confidence: confirmed
+- citation: Anon. (2023). Deep reinforcement learning for irrigation scheduling using high-dimensional
+    sensor feedback. arXiv:2301.00899.
+  location: Simulation + field (US) - verify
+  crop: Maize
+  irrigation_method: Sprinkler scheduling
+  depths_cm: Multi-layer soil water state from crop model
+  sensor: Simulated/observed profile sensors
+  soil_texture_reported: Yes (model inputs)
+  salinity_reported: 'No'
+  data_availability: open code (arXiv/GitHub); data availability needs verification
+  doi_or_url: https://arxiv.org/pdf/2301.00899
+  why_valuable: Shows the downstream use case for your model (closed-loop scheduling) and provides an
+    RL environment you could plug your SM emulator into.
+  confidence: confirmed
+- citation: 'Anon. (2025). Advances in soil moisture measurement techniques and prediction using artificial
+    intelligence: An extensive and systematic review. (Elsevier S2772375525008445).'
+  location: Global review
+  crop: Multiple
+  irrigation_method: Multiple
+  depths_cm: Topsoil and multi-layer
+  sensor: Review of all sensor classes
+  soil_texture_reported: Discussed
+  salinity_reported: Discussed
+  data_availability: review - use its reference list as a harvesting seed
+  doi_or_url: ScienceDirect S2772375525008445
+  why_valuable: 'Use the reference list as an automated harvesting seed: pull every cited field study,
+    then screen for irrigation + multi-depth. Fastest way to expand from 50 to 500 candidate papers.'
+  confidence: confirmed
+- citation: HiWATER / MUSOEXE multi-scale observation experiment, Heihe River Basin, Zhangye oasis, Gansu,
+    China (2012-present). Data at National Tibetan Plateau Data Center (data.tpdc.ac.cn).
+  location: Zhangye oasis, Heihe River Basin, Gansu, China
+  lat_lon: approx 38.85, 100.35
+  crop: Irrigated maize (seed maize), wheat, orchard
+  irrigation_method: Flood/border irrigation from the Heihe River; dense irrigation district
+  depths_cm: Typically 2, 4, 10, 20, 40, 80, 120, 160 cm at automatic weather station / soil moisture
+    nodes
+  sensor: SDI-12 capacitance / TDR networks, ~50 node wireless sensor network + 21 eddy covariance towers
+  soil_texture_reported: 'Yes'
+  salinity_reported: Some sites (oasis fringe salinization)
+  data_availability: open data repository - National Tibetan Plateau Data Center, free registration, CC-BY-like
+  doi_or_url: https://data.tpdc.ac.cn (search HiWATER) - specific DOIs unknown
+  why_valuable: 'Arguably the densest instrumented IRRIGATED agricultural observatory in the world: ~50
+    multi-depth SM nodes plus 21 flux towers in one flood-irrigated oasis. High priority target.'
+  confidence: recalled
+- citation: 'Chinese Ecosystem Research Network (CERN) agro-ecosystem stations: Luancheng, Yucheng, Fengqiu,
+    Shangqiu, Ansai, Changshu. Long-term neutron-probe soil water profiles under irrigated wheat-maize.'
+  location: North China Plain and Yangtze basin, China
+  crop: Winter wheat, summer maize, rice
+  irrigation_method: Flood/border from groundwater and canals
+  depths_cm: 0-200 cm in 10-20 cm increments, measured every 5 days for 20+ years
+  sensor: Neutron probe
+  soil_texture_reported: 'Yes'
+  salinity_reported: Fengqiu and Yucheng report salinization
+  data_availability: on request (cnern.org.cn data portal; some via published papers)
+  doi_or_url: http://www.cnern.org.cn - unknown per-station DOIs
+  why_valuable: Longest continuous irrigated multi-depth neutron-probe records anywhere. Worth a formal
+    data request; would alone be a major contribution.
+  confidence: recalled
+- citation: SMEX/SEN campaign sites at Barrax, La Mancha, Spain (SPARC 2003, SEN2FLEX 2005, SEN3EXP 2009,
+    ESA campaigns). Irrigated centre-pivot maize/alfalfa adjacent to rainfed barley.
+  location: Barrax, Albacete, Castilla-La Mancha, Spain
+  lat_lon: approx 39.05, -2.10
+  crop: Maize, alfalfa, onion, potato (irrigated) vs barley (rainfed)
+  irrigation_method: Centre pivot, on a flat plain with sharp irrigated/rainfed field boundaries
+  depths_cm: Surface (0-5 cm) intensive sampling plus profile at selected sites
+  sensor: TDR, gravimetric, capacitance; co-located airborne/satellite imagery
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: open data repository - ESA Earth Online campaign data portal (earth.esa.int), free
+    registration
+  doi_or_url: https://earth.esa.int (campaign datasets) - specific DOIs unknown
+  why_valuable: The classic irrigated/rainfed contrast site in Europe with decades of campaign data and
+    airborne imagery. Ideal for supervised irrigation detection.
+  confidence: recalled
+- citation: USDA NRCS Soil Climate Analysis Network (SCAN) - ~200 stations, many on irrigated cropland
+    in AZ, CA, NM, TX, ID, WA.
+  location: United States (all states + territories)
+  crop: Mixed; a substantial subset on irrigated cropland
+  irrigation_method: Mixed; station metadata often notes irrigation
+  depths_cm: 5, 10, 20, 50, 100 cm (2, 4, 8, 20, 40 in) standard
+  sensor: Stevens Hydra Probe (VWC, soil T, bulk EC, real/imaginary dielectric permittivity)
+  soil_texture_reported: YES - full NRCS pedon description with sand/silt/clay by horizon at every station
+  salinity_reported: Bulk EC reported directly by the Hydra Probe
+  data_availability: open data repository - free bulk download via AWDB REST/SOAP API at wcc.sc.egov.usda.gov;
+    public domain
+  doi_or_url: https://www.nrcs.usda.gov/wps/portal/wcc/home/ (AWDB API) - verify current endpoint
+  why_valuable: Public domain, hourly, 5 standard depths, WITH bulk EC and a full NRCS soil texture profile
+    at every site. This is the single highest-value US bulk ingest for a clay- and salinity-aware model.
+    Filter to irrigated sites using MIRCA-OS/IrrMap.
+  confidence: recalled
+- citation: Payero, J.O., Melvin, S.R., Irmak, S., Tarkalson, D. Yield response of corn to deficit irrigation
+    in a semiarid climate (and companion papers). Agricultural Water Management 84/89 (2006-2009).
+  location: North Platte, Nebraska (UNL West Central Research and Extension Center), USA
+  lat_lon: approx 41.09, -100.77
+  crop: Maize
+  irrigation_method: Sprinkler linear-move, multiple deficit levels
+  depths_cm: Neutron probe 0-180 cm in 30-cm increments
+  sensor: Neutron probe, weekly
+  soil_texture_reported: Yes - Cozad silt loam
+  salinity_reported: 'No'
+  data_availability: figures only (digitizable) - profile soil water depletion curves by treatment
+  doi_or_url: unknown
+  why_valuable: Clean multi-level deficit gradient with weekly 6-depth profiles; the figures are simple
+    line plots, very digitizable.
+  confidence: recalled
+- citation: 'Pereira, L.S., Paredes, P., Rosa, R.D., et al. SIMDualKc model validation datasets: soil
+    water content profiles for irrigated maize (Portugal), cotton (Syria, Uzbekistan), wheat, and olive.
+    Series of Agricultural Water Management papers, 2012-2020.'
+  location: Portugal (Alentejo, Coruche), Syria (ICARDA Tel Hadya), Uzbekistan (Fergana), Iran
+  crop: Maize, cotton, wheat, olive, barley
+  irrigation_method: Centre pivot, furrow, drip, surface
+  depths_cm: Typically 0-20, 20-40, 40-60, 60-80, 80-100, 100-120 cm
+  sensor: TDR, neutron probe, gravimetric
+  soil_texture_reported: Yes - texture and water-retention parameters tabulated in every paper
+  salinity_reported: Some Central Asian sites
+  data_availability: figures only (digitizable) plus soil parameter TABLES; consistently well tabulated
+    by this group
+  doi_or_url: unknown (multiple AWM papers)
+  why_valuable: This group publishes soil texture, FC, WP and layered SWC observations in tabular form
+    in nearly every paper - the highest tables-to-effort ratio in the literature. Systematically harvest
+    their whole output.
+  confidence: recalled
+- citation: Kang, S., Du, T., Ding, R., et al. Regulated deficit irrigation and partial root-zone drying
+    experiments, Shiyanghe Experimental Station, Wuwei, Gansu, and Yangling, Shaanxi, China. Agricultural
+    Water Management / Irrigation Science, 2000-present.
+  location: Wuwei (Shiyanghe station, approx 37.85N 102.87E) and Yangling, China
+  crop: Maize, wheat, grapevine, pear, tomato, cotton
+  irrigation_method: Drip, alternate furrow, partial root-zone drying, regulated deficit
+  depths_cm: 0-100 or 0-200 cm in 20-cm layers
+  sensor: Neutron probe, TDR, gravimetric
+  soil_texture_reported: 'Yes'
+  salinity_reported: Some arid NW China sites
+  data_availability: figures only (digitizable); very large body of work
+  doi_or_url: unknown
+  why_valuable: One of the largest single-group outputs of irrigated multi-depth soil water figures worldwide.
+    High digitization yield per unit effort.
+  confidence: recalled
+- citation: Evett, S.R., Schwartz, R.C., Casanova, J.J., Heng, L.K. Soil water sensing for water balance,
+    ET and WUE (and the Evett/Schwartz neutron-vs-EM sensor comparison series). Vadose Zone Journal /
+    Agricultural Water Management, 2008-2020.
+  location: Bushland, Texas and IAEA multi-country trials
+  crop: Maize, cotton, wheat, sorghum
+  irrigation_method: Sprinkler, SDI, deficit
+  depths_cm: 10-230 cm profiles
+  sensor: Neutron probe vs TDR vs capacitance (Sentek EnviroSCAN, Delta-T, Decagon) side by side
+  soil_texture_reported: YES - and the papers explicitly analyse clay-content and bulk-EC effects on EM
+    sensor accuracy
+  salinity_reported: YES - bulk EC effects on capacitance sensors are a central theme
+  data_availability: tables only / figures (digitizable); many free PDFs on ars.usda.gov
+  doi_or_url: unknown
+  why_valuable: This series IS the literature on your stated problem (sensors failing in clay and saline
+    soils). Read it before designing the correction layer; harvest its calibration tables as training
+    data for a sensor-bias model.
+  confidence: recalled
+- citation: IAEA TRAINING COURSE SERIES No. 16 and IAEA/FAO Coordinated Research Projects on neutron probe
+    calibration and soil water measurement in irrigated agriculture (multi-country).
+  location: Multi-country (Africa, Asia, Latin America, Middle East)
+  crop: Multiple irrigated crops
+  irrigation_method: Furrow, flood, drip, sprinkler
+  depths_cm: Standard neutron access tube profiles
+  sensor: Neutron and gamma probes with site-specific calibrations
+  soil_texture_reported: YES - calibration equations tabulated by soil texture class
+  salinity_reported: Discussed
+  data_availability: open access PDFs - https://www-pub.iaea.org/MTCD/Publications/PDF/TCS-16.pdf and
+    IAEA TECDOC series
+  doi_or_url: https://www-pub.iaea.org/MTCD/Publications/PDF/TCS-16.pdf
+  why_valuable: Free source of neutron-probe calibration equations across many soil textures and countries
+    - essential for harmonizing count-ratio data you recover from older papers into VWC.
+  confidence: confirmed
+- citation: Irmak, S., et al. Nebraska Agricultural Water Management Network (NAWMN) / UNL soil water
+    content datasets, and the Nebraska Mesonet soil moisture network.
+  location: Nebraska, USA (statewide, heavily centre-pivot irrigated)
+  crop: Maize, soybean
+  irrigation_method: Centre pivot, some gravity/furrow
+  depths_cm: Typically 30, 60, 90, 120 cm (NAWMN Watermark installations) and Mesonet 10/25/50/100 cm
+  sensor: Watermark granular matrix, capacitance, neutron probe
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: on request / partially public (CropWatch summaries); Nebraska Mesonet data is downloadable
+  doi_or_url: unknown
+  why_valuable: Thousands of grower-cooperator sensor installations in the most intensively centre-pivot-irrigated
+    state in the US. The largest untapped irrigated SM archive in North America if access can be negotiated.
+  confidence: recalled
+- citation: COSMOS-UK, TERENO (Germany), and COSMOS-Europe cosmic-ray neutron networks. Bogena, H., Heidbuchel,
+    I., Schron, M., et al.
+  location: UK, Germany, Europe-wide
+  crop: Arable and grassland, some irrigated
+  irrigation_method: Mostly rainfed; TERENO Selhausen and some Mediterranean nodes include irrigation
+  depths_cm: CRNS integrated (~15-70 cm) plus co-located point profiles at 5/20/50 cm (SoilNet)
+  sensor: CRNS + SoilNet wireless capacitance networks
+  soil_texture_reported: 'Yes'
+  salinity_reported: 'No'
+  data_availability: open data repository - COSMOS-UK via CEH EIDC (catalogue.ceh.ac.uk), TERENO via TERENO
+    data portal; COSMOS-Europe compilation published in ESSD
+  doi_or_url: COSMOS-Europe ESSD article - DOI unknown, needs verification
+  why_valuable: Field-average SM at the exact scale of an irrigation management zone, with point profiles
+    for downscaling. Free and well documented.
+  confidence: recalled
+- citation: Oklahoma Mesonet soil moisture network and the MOISST (Marena Oklahoma In Situ Sensor Testbed)
+    sensor intercomparison site. Ochsner, T.E., et al.
+  location: Oklahoma, USA
+  crop: Winter wheat, pasture; MOISST is a sensor testbed
+  irrigation_method: Mostly rainfed; western OK panhandle sites near irrigated cropland
+  depths_cm: Mesonet 5, 25, 60, 75 cm; MOISST 5, 10, 20, 50, 100 cm
+  sensor: Campbell 229-L heat dissipation (Mesonet); MOISST runs ~10 sensor brands side by side at identical
+    depths
+  soil_texture_reported: Yes - full soil characterization at every Mesonet site
+  salinity_reported: Some sensors report bulk EC
+  data_availability: open data repository - mesonet.org (free for research), MOISST data via Oklahoma
+    State
+  doi_or_url: https://www.mesonet.org - specific DOIs unknown
+  why_valuable: MOISST is the best public multi-brand sensor intercomparison at matched depths - the training
+    set for a cross-sensor harmonization model, which you will need if you merge terabytes from heterogeneous
+    sources.
+  confidence: recalled

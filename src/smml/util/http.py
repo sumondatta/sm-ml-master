@@ -56,16 +56,16 @@ class RateLimit:
 # DEFAULT_INTERVAL. Values are deliberately conservative: a harvest that gets
 # the client IP banned costs far more than it saves.
 HOST_INTERVALS: dict[str, float] = {
-    "api.openalex.org": 0.12,        # 10 req/s polite pool; stay under
+    "api.openalex.org": 0.11,        # ~10 req/s secondary limit; an API key is required since Feb 2026
     "api.crossref.org": 0.05,        # 50 req/s polite pool
     "api.semanticscholar.org": 1.05,  # 1 req/s unauthenticated
     "www.ebi.ac.uk": 0.15,           # Europe PMC
     "eutils.ncbi.nlm.nih.gov": 0.35,  # 3 req/s without an API key
     "api.unpaywall.org": 0.12,
     "api.core.ac.uk": 6.0,           # very tight quota on the free tier
-    "zenodo.org": 1.0,
+    "zenodo.org": 2.1,               # 30 req/min since Nov 2025, anonymous and authenticated alike
     "api.datacite.org": 0.25,
-    "power.larc.nasa.gov": 1.0,      # NASA POWER throttles aggressively
+    "power.larc.nasa.gov": 2.1,      # 30 unique queries per 60 s per IP, then HTTP 429
     "rest.isric.org": 1.0,           # SoilGrids: ~5 req/min is the safe zone
     "daymet.ornl.gov": 0.5,
     "sdmdataaccess.sc.egov.usda.gov": 1.0,
