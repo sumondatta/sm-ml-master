@@ -426,6 +426,91 @@ def qc(
     console.print(f"[green]{len(result):,} observations flagged, none dropped[/green]")
 
 
+@app.command("compliance")
+def compliance(
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """What the catalogued sources permit: fetching, extraction, republication.
+
+    Run this before publishing anything derived from the harvest. The three
+    questions have three different answers and conflating them is how a database
+    becomes unpublishable after the work is done.
+    """
+    import pandas as pd
+
+    from .. import registry
+    from ..litmine.compliance import (
+        attribution_manifest,
+        compliance_report,
+        counsel_checklist,
+        gate,
+    )
+
+    _setup_logging(verbose)
+    items = pd.DataFrame(registry.sources())
+    _print_frame(compliance_report(items), "catalogued sources by verdict", max_rows=30)
+
+    decided = gate(items, "redistribute")
+    undeclared = decided[decided["redistribute_verdict"] == "deny"]
+    if not undeclared.empty:
+        console.print(
+            f"\n[yellow]{len(undeclared)} sources have no usable licence recorded.[/yellow] "
+            "Their rows cannot be republished until one is, and a licence recorded "
+            "after ingest is usually a licence nobody can reconstruct."
+        )
+        _print_frame(undeclared[["short_id", "name", "licence"]].head(15),
+                     "licence not recorded", max_rows=15)
+
+    manifest = attribution_manifest(items, citation_col="citation")
+    console.print(f"\n[green]{len(manifest)} sources would require attribution[/green]")
+
+    console.print("\n[bold]Questions a licensing search cannot settle:[/bold]")
+    for question in counsel_checklist():
+        console.print(f"  • {question}")
+    console.print("\n[dim]This is a policy, not legal advice. "
+                  "See docs/research/compliance-and-licensing.md.[/dim]")
+
+
+@app.command("irrigation-label")
+def irrigation_label(
+    evidence: Path = typer.Option(None, exists=True,
+                                  help="CSV of evidence rows; omit for a worked demonstration"),
+    out: Path = typer.Option(None, help="CSV to write the labels to"),
+) -> None:
+    """Fuse irrigation evidence into a calibrated label per station-year."""
+    import pandas as pd
+
+    from ..irrigation.label import fuse_all, label_error_budget
+
+    _setup_logging(False)
+    if evidence is None:
+        console.print("[dim]no evidence file given; showing a worked example[/dim]")
+        frame = pd.DataFrame([
+            {"site_id": "declared_pivot", "year": 2020, "kind": "declared",
+             "says_irrigated": True, "strength": 1.0, "method": "center_pivot"},
+            {"site_id": "maps_only", "year": 2020, "kind": "extent_map",
+             "says_irrigated": True, "strength": 0.9, "product": "lanid"},
+            {"site_id": "maps_only", "year": 2020, "kind": "extent_map",
+             "says_irrigated": True, "strength": 0.8, "product": "gmia"},
+            {"site_id": "no_evidence", "year": 2020, "kind": "land_cover",
+             "says_irrigated": True, "strength": 0.1},
+            {"site_id": "stated_rainfed", "year": 2020, "kind": "declared",
+             "says_irrigated": False, "strength": 1.0, "method": "rainfed"},
+        ])
+    else:
+        frame = pd.read_csv(evidence)
+
+    labels = fuse_all(frame)
+    _print_frame(labels, "irrigation labels", max_rows=50)
+    budget = label_error_budget(labels)
+    console.print_json(json.dumps(budget, indent=2))
+    console.print("[dim]`uncertain` is a real answer: a station the evidence cannot "
+                  "settle belongs in neither an irrigated nor a rainfed analysis.[/dim]")
+    if out:
+        labels.to_csv(out, index=False)
+        console.print(f"[green]wrote {out}[/green]")
+
+
 @app.command("info")
 def info() -> None:
     """Database contents and environment."""

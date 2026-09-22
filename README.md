@@ -26,6 +26,8 @@ rather than as noise.
 | Database — star schema, idempotent Parquet + DuckDB | `smml.db` | complete |
 | Sensor physics — clay, salinity, unit harmonization | `smml.physics` | complete and cross-validated |
 | Quality control + irrigation inference | `smml.qc` | complete and measured |
+| Irrigation label fusion — evidence to calibrated probability | `smml.irrigation` | complete |
+| Licence and TDM compliance gate | `smml.litmine.compliance` | complete (policy, not legal advice) |
 | Features, models, evaluation, tuning | `smml.features` `.models` `.eval` `.tune` | complete, run end to end |
 
 ### The one thing to know before running this
@@ -73,6 +75,8 @@ export SMML_DATA_ROOT=/mnt/big-disk/smml   # the corpus is expected to reach TB
 ```bash
 smml simulate --n-sites 50 --years 4     # physics-based synthetic corpus
 smml qc                                   # quality control
+smml irrigation-label                     # evidence fusion, worked example
+smml compliance                           # what the sources permit
 smml evaluate --include-optimism          # models vs baselines, and split honesty
 smml tune --model lightgbm --trials 50    # hyperparameter search
 ```
@@ -181,6 +185,51 @@ onto the **legend swatch**, which is the same colour and sits inside the axes,
 for errors of 0.13 m³/m³ — three times the size of the signal. Tracing by
 Viterbi shortest path fixes it, and also rejoins curves broken by crossings.
 
+## Deciding what counts as irrigated
+
+Nothing in the world records this directly. ISMN has no irrigation attribute.
+An extent map answers "was this 30 m pixel irrigated somewhere this year", which
+is not the question — a pivot corner, a field edge, or a station on the unmanaged
+margin of an irrigated quarter-section all read as irrigated and are not.
+
+So the label is **derived**, and the rule everything follows from is that
+evidence is never collapsed into a boolean at ingest. Each raster sample, each
+sentence in a paper, each moisture signature is stored as its own row, and the
+label comes from a versioned fusion. When a better map ships, the label is
+re-derived; nothing is re-ingested.
+
+Three behaviours worth knowing:
+
+- **A declared method outweighs any number of extent maps.** Maps are the most
+  abundant evidence and the least valid at a point, so abundance must not
+  outvote a single authoritative statement.
+- **Correlated maps do not vote twice.** Products trained on overlapping imagery
+  share their errors, so agreeing with itself five times counts barely more than
+  twice.
+- **A two-treatment study is flagged, not averaged.** Almost every irrigation
+  experiment has a rainfed control, so "center pivot compared with a rainfed
+  control" is the normal case. Fusing it gives a middling probability that is
+  wrong in both directions; the honest output is
+  `ambiguous_multi_treatment`, which says the source needs plot-level
+  assignment before any of its rows can be used.
+
+`uncertain` is a real answer. A station the evidence cannot settle belongs in
+neither an irrigated nor a rainfed analysis.
+
+## What may be published
+
+Harvesting PDFs, extracting numbers from figures, and publishing the result are
+three questions with three answers, and `smml.litmine.compliance` keeps them
+separate. Run `smml compliance` before publishing anything.
+
+Against the current registry: **102 of 168 sources** could have their rows
+republished (60 of them requiring attribution), 18 are local-use only, and **47
+have no usable licence recorded** — which is the number that matters, because a
+licence recorded after ingest is usually a licence nobody can reconstruct.
+
+This is a policy, not legal advice. `counsel_checklist()` lists the eight
+questions a licensing search cannot settle.
+
 ## Recovering irrigation schedules
 
 Most published irrigated-field studies plot soil moisture and never tabulate
@@ -215,9 +264,9 @@ tests/          unit tests and API response fixtures
 ## Verification
 
 ```bash
-pytest tests/unit            # 215 fast tests
+pytest tests/unit            # 273 fast tests
 pytest tests/integration     # 14 end-to-end tests (~2 min)
-pytest                       # all 229, no network required
+pytest                       # all 287, no network required
 ```
 
 What is checked, and against what:
