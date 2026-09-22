@@ -312,13 +312,18 @@ def train(
     target: str = typer.Option("theta_obs_m3m3"),
     truth: str = typer.Option("theta_true_m3m3", help="Score against this where present"),
     out: Path = typer.Option(None, help="Directory for artifacts"),
+    clay_correction: bool = typer.Option(
+        True, help="Train on the clay-corrected reading. Without it the model "
+                   "reproduces the sensor's texture bias."
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ) -> None:
     """Fit a model under a leakage-free split and report stratified metrics."""
     from ._pipeline import run_training
 
     _setup_logging(verbose)
-    result = run_training(data, model, split, folds, target, truth, out, console)
+    result = run_training(data, model, split, folds, target, truth, out, console,
+                          use_clay_correction=clay_correction)
     console.print(f"\n[bold green]{result}[/bold green]")
 
 
@@ -348,13 +353,15 @@ def evaluate(
     include_optimism: bool = typer.Option(
         False, help="Also score under a random k-fold to quantify how much it lies"
     ),
+    clay_correction: bool = typer.Option(True, help="Train on the clay-corrected reading"),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ) -> None:
     """Compare every model against the baselines on identical folds."""
     from ._pipeline import run_evaluation
 
     _setup_logging(verbose)
-    run_evaluation(data, split, folds, include_optimism, console)
+    run_evaluation(data, split, folds, include_optimism, console,
+                   use_clay_correction=clay_correction)
 
 
 @app.command("qc")

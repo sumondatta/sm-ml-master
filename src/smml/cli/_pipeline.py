@@ -32,6 +32,24 @@ def load_corpus(data: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     )
 
 
+CLAY_CORRECTED_TARGET = "theta_clay_corrected_m3m3"
+
+
+def resolve_target(frame: pd.DataFrame, target: str, use_clay_correction: bool) -> str:
+    """Which column to actually train on.
+
+    Separated out and used by every stage so that the correction cannot be
+    computed and then silently ignored, which is what happened the first time:
+    the corrected column was written and the models were still fitted on the raw
+    reading, leaving the -0.034 bias the correction exists to remove.
+    """
+    if use_clay_correction and CLAY_CORRECTED_TARGET in frame.columns:
+        if frame[CLAY_CORRECTED_TARGET].notna().any():
+            return CLAY_CORRECTED_TARGET
+        log.warning("clay-corrected target is entirely missing; falling back to %s", target)
+    return target
+
+
 def build_modelling_table(
     data: Path,
     target: str = "theta_obs_m3m3",
@@ -119,6 +137,7 @@ def run_training(
     truth: str,
     out: Path | None,
     console,
+    use_clay_correction: bool = True,
 ):
     """Cross-validate one model and print stratified metrics."""
     from ..eval.runner import run_cv
@@ -126,8 +145,9 @@ def run_training(
     from ..util.paths import artifacts_dir
 
     frame, features, _ = build_modelling_table(data, target=target)
+    target = resolve_target(frame, target, use_clay_correction)
     console.print(f"[dim]{len(frame):,} rows, {frame.site_id.nunique()} sites, "
-                  f"{len(features)} features[/dim]")
+                  f"{len(features)} features, target={target}[/dim]")
 
     kwargs = {"n_folds": folds} if split != "forward_chaining" else {"n_splits": folds,
                                                                      "gap_days": 365}
@@ -204,7 +224,9 @@ def run_tuning(
     from ..tune.search import TuningConfig, save_best_params, tune
 
     frame, features, _ = build_modelling_table(data)
-    console.print(f"[dim]{len(frame):,} rows, {frame.site_id.nunique()} sites[/dim]")
+    target = resolve_target(frame, "theta_obs_m3m3", use_clay_correction=True)
+    console.print(f"[dim]{len(frame):,} rows, {frame.site_id.nunique()} sites, "
+                  f"target={target}[/dim]")
 
     builders = {
         "lightgbm": lambda params: LightGBMModel(params=params, num_boost_round=600),
@@ -218,7 +240,7 @@ def run_tuning(
         study_name=f"{study}_{model}", search_sample_fraction=sample,
     )
     truth = "theta_true_m3m3" if "theta_true_m3m3" in frame.columns else None
-    result = tune(frame, features, "theta_obs_m3m3", builders[model], model, config,
+    result = tune(frame, features, target, builders[model], model, config,
                   truth_col=truth)
 
     console.print(f"\n[bold green]best {metric} = {result.best_value:.5f}[/bold green]")
@@ -244,7 +266,8 @@ def run_tuning(
     return result
 
 
-def run_evaluation(data: Path, split: str, folds: int, include_optimism: bool, console):
+def run_evaluation(data: Path, split: str, folds: int, include_optimism: bool, console,
+                   use_clay_correction: bool = True):
     """Every model against every baseline on identical folds."""
     from rich.table import Table
 
@@ -260,6 +283,9 @@ def run_evaluation(data: Path, split: str, folds: int, include_optimism: bool, c
 
     frame, features, _ = build_modelling_table(data)
     truth = "theta_true_m3m3" if "theta_true_m3m3" in frame.columns else None
+    target = resolve_target(frame, "theta_obs_m3m3", use_clay_correction)
+    console.print(f"[dim]{len(frame):,} rows, {frame.site_id.nunique()} sites, "
+                  f"target={target}[/dim]")
 
     factories = {
         "global_mean": GlobalMeanBaseline,
@@ -271,7 +297,7 @@ def run_evaluation(data: Path, split: str, folds: int, include_optimism: bool, c
     }
     splitter = get_splitter(split, n_folds=folds)
     table, results = compare_models(
-        frame, features, "theta_obs_m3m3", factories, splitter,
+        frame, features, target, factories, splitter,
         split_name=split, truth_col=truth, inner_validation_fraction=0.15, verbose=False,
     )
 
@@ -299,7 +325,7 @@ def run_evaluation(data: Path, split: str, folds: int, include_optimism: bool, c
             "random_kfold_DO_NOT_USE": get_splitter("random_kfold_DO_NOT_USE", n_folds=folds),
         }
         optimism = compare_split_optimism(
-            frame, features, "theta_obs_m3m3",
+            frame, features, target,
             lambda: LightGBMModel(num_boost_round=400), splitters, truth_col=truth,
         )
         display = Table(title="how much each split flatters the model", header_style="bold")

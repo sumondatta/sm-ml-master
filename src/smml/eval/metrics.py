@@ -252,10 +252,28 @@ def per_site_then_average(
     per_site = metrics_by_group(frame, y_true, y_pred, site_col, min_n=min_n)
     if per_site.empty:
         return {f"site_mean_{k}": float("nan") for k in ALL_METRICS}
-    out = {f"site_mean_{k}": float(per_site[k].mean()) for k in ALL_METRICS if k in per_site}
-    out.update({f"site_median_{k}": float(per_site[k].median()) for k in ALL_METRICS if k in per_site})
+
+    def _agg(column: pd.Series, how: str) -> float:
+        # A constant prediction has no variance, so correlation is undefined at
+        # every site and the whole column is NaN. Reducing that is legitimate and
+        # the answer is NaN, but NumPy warns about it; the warning is noise here
+        # and would mask a real one elsewhere in the run.
+        values = column.dropna()
+        if values.empty:
+            return float("nan")
+        return float(values.mean() if how == "mean" else values.median())
+
+    out = {f"site_mean_{k}": _agg(per_site[k], "mean") for k in ALL_METRICS if k in per_site}
+    out.update({f"site_median_{k}": _agg(per_site[k], "median")
+                for k in ALL_METRICS if k in per_site})
     out["n_sites"] = int(len(per_site))
     return out
+
+
+def _median_or_nan(values: list[float]) -> float:
+    """Median over the finite entries, or NaN if there are none, without warning."""
+    finite = [v for v in values if np.isfinite(v)]
+    return float(np.median(finite)) if finite else float("nan")
 
 
 def skill_decomposition(
@@ -320,6 +338,9 @@ def skill_decomposition(
             per_site_r.append(0.0 if p.std() == 0 else np.nan)
         per_site_ub.append(ubrmse(t, p))
 
+    valid_r = [v for v in per_site_r if np.isfinite(v)]
+    r_within = float(np.median(valid_r)) if valid_r else float("nan")
+
     site_mean = work.groupby(site_col, observed=True)[y_true].transform("mean")
     total_var = float(work[y_true].var())
     within_var = float((work[y_true] - site_mean).var())
@@ -327,8 +348,8 @@ def skill_decomposition(
 
     return {
         "r_between": r_between,
-        "r_within": float(np.nanmedian(per_site_r)),
-        "ubrmse_within": float(np.nanmedian(per_site_ub)),
+        "r_within": r_within,
+        "ubrmse_within": _median_or_nan(per_site_ub),
         "variance_explained_between": float(between_share),
         "n_sites": int(work[site_col].nunique()),
     }
