@@ -192,8 +192,9 @@ tests/          unit tests and API response fixtures
 ## Verification
 
 ```bash
-pytest                       # unit tests, no network
-pytest -m network            # live-API tests, skipped by default
+pytest tests/unit            # 197 fast tests
+pytest tests/integration     # 14 end-to-end tests (~2 min)
+pytest                       # all 211, no network required
 ```
 
 What is checked, and against what:
@@ -211,6 +212,21 @@ What is checked, and against what:
 - **Connector parsers** handle each service's documented traps.
 - **QC detectors** are tested against injected faults *and* against legitimate
   behaviour they must not flag.
+
+The integration suite re-measures the load-bearing claims on every run rather
+than trusting this README:
+
+- the clay-corrected target is the one actually selected, and fitting to it
+  reduces both bias and RMSE against true water content;
+- a random k-fold really does score better than a site split — if they ever tie,
+  either the split is broken or a feature is carrying site identity across the
+  boundary;
+- no feature correlates with the target above 0.95, which is the signature of
+  leakage through a lagged copy or a bad join;
+- a learned model has within-site temporal skill where the static baseline has
+  exactly none;
+- an interrupted hyperparameter search resumes rather than restarting;
+- writing the same observations twice is a no-op.
 
 ## Known limitations
 
