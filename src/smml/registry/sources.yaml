@@ -1,4 +1,954 @@
 sources:
+- name: WSU AgWeatherNet, CoAgMet, and Intermountain/PNW irrigation networks
+  short_id: agweathernet_coagmet_intermountain
+  category: in_situ_network
+  description: 'Western irrigation-serving ag-weather networks: Washington State University AgWeatherNet,
+    Colorado''s CoAgMet, the Utah Climate Center network, and USBR AgriMet across Idaho and the Pacific
+    Northwest.'
+  access_method: AgWeatherNet portal/API at weather.wsu.edu (free account); CoAgMet at coagmet.colostate.edu
+    with CSV/API endpoints; USBR AgriMet at usbr.gov/pn/agrimet/ with flat-file and chart-request access.
+  base_url: https://weather.wsu.edu/
+  auth: 'AgWeatherNet: free registered account/API key. CoAgMet and AgriMet: open.'
+  confidence: recalled
+  priority: 1
+  depths_cm: 'AgWeatherNet: ~20 (and 8 in) at soil-moisture-equipped sites. CoAgMet: ~5, 20, 50 at Colorado
+    Soil Moisture Network sites. AgriMet: ~20, 50 at selected agrimet sites'
+  sensor_type: Campbell CS655 and Stevens Hydra Probe (AgWeatherNet, CoAgMet); Watermark and capacitance
+    probes at AgriMet irrigation sites
+  spatial_coverage: Washington (~200 AWN stations), Colorado (~90 CoAgMet), Utah, and Idaho/Oregon/Montana/Washington
+    (AgriMet, ~70+)
+  temporal_coverage: AWN 1988-; CoAgMet 1992-; AgriMet 1983-
+  temporal_resolution: 15-min and hourly, daily summaries
+  key_variables:
+  - volumetric_water_content
+  - soil_temperature
+  - reference_et
+  - crop_water_use
+  - precipitation
+  - air_temperature
+  - relative_humidity
+  - wind
+  - solar_radiation
+  file_formats:
+  - CSV
+  - JSON
+  - fixed-width text
+  in_ismn: 'no'
+  licence: Open or free-registration research use with attribution
+  n_stations_or_size: ~350+ stations across the four programs
+  irrigated_relevance: This is the most irrigation-relevant cluster in the catalogue. AgWeatherNet stations
+    blanket the Columbia Basin, Yakima Valley and Wenatchee orchards and vineyards — nearly all irrigated.
+    USBR AgriMet exists specifically to schedule irrigation on Reclamation projects, so essentially every
+    AgriMet site is in or beside an irrigated field. CoAgMet covers irrigated South Platte and Arkansas
+    Valley farmland.
+  gotchas: Soil moisture is an add-on at all four — most stations report only weather and ETo, so the
+    soil-moisture subset is much smaller than the station count suggests. AgWeatherNet API terms restrict
+    bulk redistribution.
+  irrigated_stations: 'yes'
+- name: AmeriFlux network soil water content (BASE product)
+  short_id: ameriflux
+  category: in_situ_network
+  description: DOE-supported eddy-covariance network whose BASE files include SWC at one or more depths
+    alongside fluxes.
+  access_method: Web download form after registration (BASE-BADM zip per site); AmeriFlux also serves
+    FLUXNET-format and the ONEFlux-processed products.
+  base_url: https://ameriflux.lbl.gov/data/download-data/
+  auth: free registration + acceptance of the AmeriFlux CC-BY-4.0 data policy
+  confidence: recalled
+  priority: 1
+  sensor_type: 'heterogeneous by site: TDR, capacitance/FDR (CS616, CS650, Campbell), Theta/ML2 impedance
+    probes'
+  depths_cm: site-specific, commonly 5, 10, 20, 50, 100 (encoded in the SWC_1_1_1 / SWC_1_2_1 index scheme)
+  n_stations_or_size: '>600 registered sites, several hundred with usable SWC'
+  spatial_coverage: North, Central and South America; densest in CONUS
+  temporal_coverage: 1990s-present, site-dependent
+  temporal_resolution: half-hourly / hourly
+  key_variables:
+  - SWC
+  - TS soil temperature
+  - LE
+  - H
+  - NEE
+  - P
+  - TA
+  - G
+  file_formats:
+  - CSV (BASE)
+  - FLUXNET CSV
+  licence: CC-BY-4.0 (AmeriFlux data policy; site-PI citation required)
+  in_ismn: partial
+  irrigated_relevance: 'The single best federal-adjacent source of irrigated-cropland soil moisture: US-Ne1
+    and US-Ne2 (center-pivot irrigated maize and maize-soybean, Mead NE, with rainfed US-Ne3 as a paired
+    control), US-Twt and US-Tw3 (flood-irrigated rice/alfalfa, Sacramento-San Joaquin Delta), plus irrigated
+    sites in AZ, CA and the Texas High Plains.'
+  gotchas: SWC depth is not in the variable name, only in the BADM metadata, so each site's depth mapping
+    must be looked up individually; calibration and units (% vs m3/m3) vary by PI.
+  irrigated_stations: 'yes'
+- name: AZMET — Arizona Meteorological Network
+  short_id: azmet
+  category: in_situ_network
+  description: University of Arizona network of about 30 stations in Arizona's irrigated agricultural
+    districts, providing reference ET and crop water-use guidance.
+  access_method: Daily and hourly flat text/CSV files and station pages under azmet.arizona.edu; predictable
+    per-station, per-year file naming makes scripted bulk download easy.
+  base_url: https://azmet.arizona.edu/
+  auth: Open, no key
+  confidence: recalled
+  priority: 1
+  depths_cm: Soil temperature at ~5 and ~50 (2 and 20 in); no routine volumetric soil moisture
+  sensor_type: Soil thermistors; AZMET does not run a standard soil-moisture probe network
+  spatial_coverage: Arizona, ~30 stations concentrated in Maricopa, Yuma, Pinal and Cochise counties
+  temporal_coverage: 1987-
+  temporal_resolution: Hourly and daily
+  key_variables:
+  - reference_evapotranspiration
+  - soil_temperature
+  - precipitation
+  - air_temperature
+  - relative_humidity
+  - wind
+  - solar_radiation
+  - heat_units
+  file_formats:
+  - CSV
+  - fixed-width text
+  in_ismn: 'no'
+  licence: Open with attribution to University of Arizona AZMET
+  n_stations_or_size: ~30 stations
+  irrigated_relevance: Yes, strongly — Arizona agriculture is ~100% irrigated, and AZMET stations (Maricopa,
+    Yuma Valley, Yuma Mesa, Safford, Parker) sit inside flood- and pivot-irrigated districts. Station
+    locations are effectively a directory of Arizona's irrigated cropland.
+  gotchas: Like CIMIS, AZMET delivers soil temperature and ETo but not volumetric soil moisture, so it
+    cannot serve as a soil-moisture label source. The Maricopa Agricultural Center, however, has separate
+    irrigation-research soil-moisture instrumentation worth pursuing independently.
+  irrigated_stations: 'yes'
+- name: Berambadi / Kabini Critical Zone Observatory (AMBHAS, M-TROPICS/OZCAR)
+  short_id: berambadi_kabini_czo
+  category: in_situ_network
+  description: Indo-French instrumented agricultural watershed in Karnataka, India, with dozens of soil
+    moisture probes across rainfed and borewell-irrigated plots.
+  access_method: M-TROPICS / OZCAR data portal (Kabini CZO datasets), with some series distributed by
+    the IISc-IRD Indo-French Cell for Water Sciences.
+  base_url: https://mtropics.obs-mip.fr
+  auth: free registration / data request
+  confidence: recalled
+  priority: 1
+  sensor_type: capacitance (Decagon 5TM/EC-5) and ThetaProbe impedance; periodic gravimetric campaigns
+  depths_cm: 5, 10, 20, 50, 100 (plot-dependent)
+  spatial_coverage: Berambadi watershed (~84 km2) and wider Kabini basin, Karnataka, southern India
+  temporal_coverage: ~2009/2010-present
+  temporal_resolution: 30 min
+  key_variables:
+  - soil moisture
+  - groundwater level
+  - rainfall
+  - crop type and irrigation practice
+  file_formats:
+  - csv
+  licence: free for research with co-authorship/citation conventions
+  n_stations_or_size: tens of probe sites across the watershed (order 50 sensors)
+  in_ismn: unknown
+  irrigated_relevance: 'Explicitly designed around groundwater irrigation: individual plots of borewell-irrigated
+    turmeric, banana, sugarcane and sunflower sit next to rainfed plots, and the site is the reference
+    for Sentinel-1 irrigation-detection work in India.'
+  gotchas: Sensor set and plot list change between cropping seasons, so continuous multi-year series at
+    a fixed point are limited; metadata on irrigation events is sometimes qualitative.
+  irrigated_stations: unknown
+- name: CIMIS — California Irrigation Management Information System
+  short_id: cimis
+  category: in_situ_network
+  description: California Department of Water Resources network of ~145 active stations sited over irrigated
+    grass, built to deliver reference evapotranspiration for irrigation scheduling statewide.
+  access_method: Official Web API at et.water.ca.gov/api (JSON/CSV/XML) with an application key, plus
+    the CIMIS web portal.
+  base_url: https://cimis.water.ca.gov/
+  auth: Free registration required; API appKey issued per account
+  confidence: recalled
+  priority: 1
+  depths_cm: Soil temperature at ~15 cm; volumetric soil moisture is NOT a standard CIMIS variable at
+    most stations
+  sensor_type: Soil thermistor at standard stations; soil moisture only at a small number of special/legacy
+    installations
+  spatial_coverage: California, ~145 active stations (250+ including retired)
+  temporal_coverage: 1982-
+  temporal_resolution: Hourly and daily
+  key_variables:
+  - reference_evapotranspiration
+  - soil_temperature
+  - precipitation
+  - air_temperature
+  - relative_humidity
+  - wind
+  - solar_radiation
+  - vapor_pressure
+  file_formats:
+  - JSON
+  - CSV
+  - XML
+  in_ismn: 'no'
+  licence: Public domain (California state data) with attribution
+  n_stations_or_size: ~145 active stations
+  irrigated_relevance: Every CIMIS station is by design sited on well-watered irrigated grass in an agricultural
+    setting — Central Valley, Imperial Valley, Salinas. That makes it the definitive US source of irrigated-condition
+    ETo, and its station siting is a strong proxy map of irrigated land.
+  gotchas: 'The critical limitation: CIMIS measures ETo and soil temperature, not volumetric soil moisture
+    — do not budget it as a soil-moisture source. The irrigated-grass siting also means station conditions
+    are not representative of surrounding crop fields for satellite validation.'
+  irrigated_stations: 'yes'
+- name: CMA national automatic soil moisture and agrometeorological network (China)
+  short_id: cma_soil_moisture_cn
+  category: in_situ_network
+  description: 'China Meteorological Administration''s operational soil moisture observing system: thousands
+    of automatic FDR stations plus decades of decadal gravimetric agrometeorological observations.'
+  access_method: China Meteorological Data Service Centre (CMDC) catalogue with per-dataset order/download;
+    most soil moisture products are restricted to domestic/registered institutional users.
+  base_url: http://data.cma.cn
+  auth: institutional registration; many datasets restricted to Chinese users or by formal request
+  confidence: recalled
+  priority: 1
+  sensor_type: FDR/capacitance (automatic stations); gravimetric (agromet stations)
+  depths_cm: 'automatic: 0-10, 10-20, 20-30 ... 90-100; gravimetric: 10 cm increments to 50 or 100'
+  spatial_coverage: Nationwide, densest in the eastern agricultural provinces
+  temporal_coverage: gravimetric ~1981-present (decadal, on the 8th/18th/28th); automatic ~2009/2013-present
+  temporal_resolution: hourly (automatic); 10-daily (gravimetric)
+  key_variables:
+  - volumetric/gravimetric soil moisture
+  - relative soil moisture
+  - field capacity
+  - soil temperature
+  file_formats:
+  - csv
+  - txt
+  licence: restricted; redistribution generally not permitted
+  n_stations_or_size: ~2,000-2,400 automatic stations; ~700-780 agromet gravimetric stations
+  in_ismn: partial
+  irrigated_relevance: 'The single most important irrigated-cropland in-situ dataset in Asia: dense coverage
+    of the North China Plain (Hebei, Henan, Shandong irrigated winter wheat), Xinjiang oases, and the
+    Ningxia/Inner Mongolia Yellow River irrigation districts. Relative-soil-moisture jumps at these stations
+    are the standard ground truth for Chinese irrigation-detection studies.'
+  gotchas: Access is the bottleneck — non-Chinese requesters usually cannot get the full archive, and
+    derived subsets circulate mainly through published papers. Values are often distributed as relative
+    soil moisture (% of field capacity), not volumetric.
+  irrigated_stations: 'yes'
+- name: Heihe / HiWATER eco-hydrological observation network (Zhangye oasis)
+  short_id: heihe_hiwater
+  category: in_situ_network
+  description: Dense, well-documented Chinese observatory in the Heihe River basin combining superstations
+    and a 21-node wireless sensor network inside a flood-irrigated maize oasis.
+  access_method: Dataset-level download from the National Tibetan Plateau Data Center (formerly the Heihe/WestDC
+    data centre).
+  base_url: https://data.tpdc.ac.cn
+  auth: free registration, per-dataset agreement
+  confidence: recalled
+  priority: 1
+  sensor_type: capacitance (Decagon EC-TM/5TM), Hydra Probe impedance, SPADE probes; co-located CRNS and
+    large-aperture scintillometers
+  depths_cm: 2, 4, 10, 20, 40, 80, 120, 160
+  spatial_coverage: 'Heihe River basin, Gansu/Qinghai: upstream A''rou, midstream Daman/Zhangye oasis,
+    downstream Sidaoqiao'
+  temporal_coverage: 2008-present (HiWATER intensive 2012-2015)
+  temporal_resolution: 10 min
+  key_variables:
+  - soil moisture
+  - soil temperature
+  - eddy-covariance fluxes
+  - irrigation and crop management records
+  file_formats:
+  - csv
+  - xlsx
+  - netcdf
+  licence: free for research, CC-BY-NC style with citation obligation
+  n_stations_or_size: ~20 stations plus a 21-node in-field WSN
+  in_ismn: 'no'
+  irrigated_relevance: 'Best-in-class irrigated case study: Daman superstation and the surrounding WSN
+    sit in border/flood-irrigated maize with documented irrigation dates and amounts, making it near-ideal
+    for supervised irrigation detection.'
+  gotchas: Distributed as many separate DOI'd datasets rather than a single continuous archive — assembling
+    a multi-year series requires stitching several packages with inconsistent column naming (metadata
+    often Chinese-only).
+  irrigated_stations: unknown
+- name: ICOS Ecosystem Station Network
+  short_id: icos_ecosystem
+  category: in_situ_network
+  description: Pan-European research infrastructure whose ecosystem (flux tower) stations report standardised
+    soil water content profiles alongside eddy-covariance fluxes.
+  access_method: 'ICOS Carbon Portal: browsable catalogue, direct HTTP download, SPARQL metadata endpoint
+    and the icoscp Python library; also bundled into FLUXNET/warm-winter releases'
+  base_url: https://data.icos-cp.eu/
+  auth: free account for download; CC BY 4.0
+  confidence: recalled
+  priority: 1
+  sensor_type: mixed FDR/capacitance and TDR, station-dependent
+  depths_cm: profiles typically 5, 10, 20, 30, 50, 100 (varies by station)
+  spatial_coverage: Europe (approx. 15 countries)
+  temporal_coverage: 2015/2016-present, some sites much longer via FLUXNET heritage
+  temporal_resolution: 30 min (L2), daily/monthly aggregates
+  n_stations_or_size: ~80-100 ecosystem stations
+  key_variables:
+  - SWC profile
+  - soil temperature
+  - latent/sensible heat flux
+  - NEE
+  - precipitation
+  file_formats:
+  - CSV
+  - NetCDF (ETC archives)
+  licence: CC BY 4.0
+  in_ismn: partial
+  irrigated_relevance: A small number of cropland stations are irrigated - notably Borgo Cioffi (IT-BCi,
+    irrigated maize/alfalfa in Campania) and some Spanish/Italian croplands; check each site's management
+    metadata.
+  gotchas: SWC sensor depth, count and calibration vary per station and are only in the per-site BADM
+    metadata, not the data columns; many stations report percent, not m3/m3 scaled identically.
+  irrigated_stations: unknown
+- name: Illinois Climate Network (WARM Program)
+  short_id: illinois_climate_network_warm
+  category: in_situ_network
+  description: Illinois State Water Survey's Water and Atmospheric Resources Monitoring program, holding
+    one of the longest continuous deep soil-moisture profile records in North America (neutron probe from
+    1981, then Hydra Probe).
+  access_method: ISWS WARM data pages and climate database downloads.
+  base_url: https://www.isws.illinois.edu/warm/soil/
+  auth: Open, no key
+  confidence: recalled
+  priority: 1
+  depths_cm: 'Hydra Probe: 5, 10, 20, 50, 100, 150. Historic neutron probe: 10 cm increments to ~200 cm'
+  sensor_type: Stevens Hydra Probe (impedance) since ~2004; downhole neutron probe 1981-2004 (biweekly)
+  spatial_coverage: Illinois, 19 stations
+  temporal_coverage: 1981- (soil moisture), among the longest such records anywhere
+  temporal_resolution: Hourly (Hydra Probe era); biweekly (neutron-probe era)
+  key_variables:
+  - volumetric_water_content
+  - soil_temperature
+  - precipitation
+  - air_temperature
+  - relative_humidity
+  - solar_radiation
+  - wind
+  - pan_evaporation
+  file_formats:
+  - CSV
+  - text
+  in_ismn: unknown
+  licence: Open with attribution to Illinois State Water Survey
+  n_stations_or_size: 19 stations
+  irrigated_relevance: Largely rainfed; a minority of sandy-soil sites in the Havana Lowlands / Mason
+    County area lie in Illinois' one significant center-pivot irrigation district. Treat the network overall
+    as a rainfed long-record benchmark.
+  gotchas: The 2004 neutron-probe-to-Hydra-Probe transition introduces a documented discontinuity — do
+    not fit trends across it without correction. Deep (100-150 cm) sensors have higher failure rates late
+    in the record.
+  irrigated_stations: 'yes'
+- name: International Soil Moisture Network (ISMN)
+  short_id: ismn
+  category: in_situ_network
+  description: Global harmonised archive of in-situ soil moisture from national and research networks,
+    hosted by TU Wien with ESA support.
+  access_method: Free registration, then web portal download of a single zip (select networks/date range/depths);
+    no public REST bulk API. The `ismn` python package (pip install ismn) reads the zip directly and builds
+    a metadata index.
+  base_url: https://ismn.earth
+  auth: Free account (email + name + intended use); data may not be redistributed, must cite ISMN and
+    the originating network.
+  confidence: recalled
+  priority: 1
+  sensor_type: 'mixed: TDR, FDR/capacitance, impedance, neutron probe, gravimetric, some CRNS'
+  depths_cm: 0-200, most stations 5, 10, 20, 50, 100
+  in_ismn: 'yes'
+  spatial_coverage: global, ~80 member networks
+  temporal_coverage: 1952-present, dense from ~2000
+  temporal_resolution: native (hourly/sub-hourly) plus derived daily
+  n_stations_or_size: ~80 networks, >3000 stations (order 2900-3400 depending on release)
+  file_formats:
+  - Header+Values ASCII (one file per variable/depth, metadata in header)
+  - CEOP format (fixed-width, all variables one file)
+  - zip bundle
+  key_variables:
+  - soil moisture (m3/m3)
+  - soil temperature
+  - air temperature
+  - precipitation
+  - snow depth
+  - SWE
+  licence: Varies by contributing network; ISMN terms forbid redistribution
+  irrigated_relevance: Contains irrigated-district stations (e.g. parts of SCAN/USCRN in the US High Plains
+    and Central Valley, Chinese and Indian networks), but irrigation is not flagged in the metadata so
+    sites must be identified by cross-referencing irrigation maps.
+  gotchas: Quality flags are G (good), C (exceeds physical range C01-C03), D (dynamic/spectrum-based outlier
+    tests D01-D10), M (missing/ancillary problem); filtering to G only can drop large fractions of a network.
+    Depth reporting and sensor metadata are inconsistent across networks.
+  irrigated_stations: unknown
+- name: Kansas Mesonet
+  short_id: kansas_mesonet
+  category: in_situ_network
+  description: Kansas State University statewide mesonet with a dedicated soil-moisture profile subnetwork
+    at roughly half its stations.
+  access_method: Web download tool plus a REST endpoint under mesonet.k-state.edu/rest/ (station/time/variable
+    query parameters).
+  base_url: https://mesonet.k-state.edu/
+  auth: Open, no key
+  confidence: recalled
+  priority: 1
+  depths_cm: 5, 10, 20, 50
+  sensor_type: Campbell Scientific CS655 (some earlier CS616) coaxial impedance/TDR-type probes
+  spatial_coverage: Kansas, ~80 stations; soil moisture at ~40+
+  temporal_coverage: ~2008- (soil moisture expansion from ~2015)
+  temporal_resolution: 5-min, hourly and daily aggregates
+  key_variables:
+  - volumetric_water_content
+  - soil_temperature
+  - bulk_electrical_conductivity
+  - precipitation
+  - air_temperature
+  - relative_humidity
+  - wind
+  - solar_radiation
+  file_formats:
+  - CSV
+  - JSON
+  in_ismn: unknown
+  licence: Open, attribution to Kansas Mesonet
+  n_stations_or_size: ~80 stations, ~40 with soil moisture
+  irrigated_relevance: Western Kansas stations (Garden City, Tribune, Colby, Scandia area) sit inside
+    the irrigated Ogallala/High Plains corn belt, though the sensors themselves are usually on unirrigated
+    station plots. Scandia and Garden City experiment fields have irrigated research plots nearby.
+  gotchas: CS655 permittivity readings are sensitive to high soil EC in western Kansas saline soils, biasing
+    VWC high. Station soil moisture start dates vary widely — check per-station metadata before building
+    a time series.
+  irrigated_stations: unknown
+- name: Mediterranean irrigated-agriculture networks (Barrax/Las Tiesas ITAP, SIAR, IRRIFRAME/CER, Ebro-Aragon)
+  short_id: mediterranean_irrigated
+  category: in_situ_network
+  description: 'The cluster where European irrigated-cropland soil moisture actually exists: ITAP''s Las
+    Tiesas/Barrax experimental farm in Albacete, Spain''s national SIAR irrigation agroclimatic network,
+    the Ebro/Aragon irrigation districts monitored by CITA, and Emilia-Romagna''s CER/IRRIFRAME irrigation
+    advisory network with ARPAE stations.'
+  access_method: SIAR web portal (WebSIAR) with station CSV export; ARPAE Dexter open data portal for
+    Emilia-Romagna; IRRIFRAME advisory service; Barrax/Las Tiesas campaign and continuous data via ITAP
+    and ESA/JRC campaign archives on request
+  base_url: https://eportal.mapa.gob.es/websiar/
+  auth: SIAR and Dexter open/free registration; ITAP and CITA data by request
+  confidence: recalled
+  priority: 1
+  sensor_type: FDR/capacitance and TDR at farm sites; neutron probe and gravimetric sampling in historical
+    Barrax campaigns
+  depths_cm: typically 10, 20, 30, 40, 60, 100 in irrigated-scheduling profiles
+  spatial_coverage: Castilla-La Mancha, Ebro basin/Aragon and Valencia (Spain); Emilia-Romagna and Po
+    valley (Italy)
+  temporal_coverage: Barrax campaigns since the 1990s (EFEDA, SPARC, SEN2Flex); SIAR since ~1999; IRRIFRAME
+    since ~2010
+  temporal_resolution: hourly to daily
+  n_stations_or_size: SIAR >400 agroclimatic stations; ITAP ~30+ Albacete stations; CER/IRRIFRAME covers
+    ~thousands of managed fields
+  key_variables:
+  - volumetric soil moisture
+  - ET0 and crop ET
+  - irrigation scheduling/applied water
+  - soil temperature
+  - meteorology
+  file_formats:
+  - CSV
+  - XLS
+  - web service exports
+  licence: mixed public-sector open data; campaign data by agreement
+  in_ismn: partial
+  irrigated_relevance: 'This is the core irrigated set: Barrax/Las Tiesas is centre-pivot irrigated maize,
+    onion, garlic and alfalfa in a dry matrix and is the classic European irrigation cal/val site; SIAR
+    stations sit inside irrigation districts by design, and CER/IRRIFRAME records actual applied irrigation
+    volumes in the Po valley.'
+  gotchas: Most of these are agronomic irrigation-advisory services, not research soil moisture networks,
+    so metadata, sensor calibration and depth documentation are weaker and few series reach ISMN; applied-irrigation
+    records may be modelled recommendations rather than measured applications.
+  irrigated_stations: 'yes'
+- name: MOISST — Marena Oklahoma In Situ Sensor Testbed
+  short_id: moisst
+  category: in_situ_network
+  description: Intercomparison testbed near Marena, Oklahoma where many soil-moisture sensor technologies
+    are co-located in the same soil profile alongside a cosmic-ray neutron probe.
+  access_method: Project website downloads; some data mirrored through Oklahoma State University and collaborating
+    projects.
+  base_url: https://moisst.org/
+  auth: Open / registration on project site
+  confidence: recalled
+  priority: 1
+  depths_cm: 5, 10, 20, 50, 100 (plus CRNS ~0-30 effective and neutron-probe profile to ~2 m)
+  sensor_type: Co-located CS616, CS655, Stevens Hydra Probe, Delta-T Theta Probe, Decagon/METER 5TM and
+    EC-5, TDR, Campbell 229-L, downhole neutron probe, and COSMOS-style CRNS
+  spatial_coverage: Single intensive site, Marena OK (with satellite sites in the surrounding Oklahoma
+    Mesonet footprint)
+  temporal_coverage: 2010-
+  temporal_resolution: Sub-hourly (typically 30-min)
+  key_variables:
+  - volumetric_water_content
+  - matric_potential
+  - soil_temperature
+  - bulk_electrical_conductivity
+  - neutron_count
+  - precipitation
+  file_formats:
+  - CSV
+  in_ismn: unknown
+  licence: Research use; cite MOISST publications
+  n_stations_or_size: 1 core testbed + a handful of satellite profiles
+  irrigated_relevance: Not irrigated — rainfed native prairie/pasture. Its value is as a sensor-bias and
+    cross-calibration reference for harmonising the many sensor types found across irrigated networks.
+  gotchas: Small site, not a spatial network; treat it as a calibration/bias-correction dataset, not a
+    training sample. Data availability per sensor is patchy across the record.
+  irrigated_stations: 'no'
+- name: NDAWN (North Dakota Agricultural Weather Network) and South Dakota Mesonet
+  short_id: ndawn_sdmesonet
+  category: in_situ_network
+  description: Two Northern Plains university agricultural networks — NDSU's NDAWN across ND/MN/MT/SD
+    and the SDSU Mesonet across South Dakota — both reporting soil temperature everywhere and soil moisture
+    at a growing subset.
+  access_method: NDAWN table/CSV generator at ndawn.ndsu.nodak.edu (get-table.html); SDSU Mesonet archive
+    at climate.sdstate.edu.
+  base_url: https://ndawn.ndsu.nodak.edu/
+  auth: Open, no key
+  confidence: recalled
+  priority: 1
+  depths_cm: 'NDAWN: bare and turf soil temperature at 10 cm, volumetric soil moisture at ~5, 20, 50 at
+    instrumented sites. SD Mesonet: ~5, 10, 20, 50, 100 (2/4/8/20/40 in)'
+  sensor_type: Stevens Hydra Probe (SD Mesonet); capacitance/CS-series probes at NDAWN soil-moisture sites
+  spatial_coverage: North Dakota plus adjacent MN/MT/SD (~180-200 NDAWN stations); South Dakota (~30 SDSU
+    stations)
+  temporal_coverage: NDAWN 1989-; NDAWN soil moisture mostly 2019-; SD Mesonet ~2016-
+  temporal_resolution: Hourly and daily (NDAWN also 5-min at newer sites)
+  key_variables:
+  - volumetric_water_content
+  - soil_temperature
+  - precipitation
+  - air_temperature
+  - relative_humidity
+  - wind
+  - solar_radiation
+  - potential_evapotranspiration
+  file_formats:
+  - CSV
+  - text tables
+  in_ismn: unknown
+  licence: Open with attribution to NDSU / SDSU
+  n_stations_or_size: ~180-200 NDAWN + ~30 SD Mesonet
+  irrigated_relevance: Yes — NDAWN was built partly to serve irrigators on the sandy Sheyenne Delta and
+    includes the Oakes Irrigation Research Site and Carrington, both with irrigated research plots. Most
+    other NDAWN and SD sites are dryland small-grain and row-crop.
+  gotchas: NDAWN's soil-moisture layer is recent and thin relative to its long air-temperature record
+    — do not assume soil moisture spans the full archive. Frozen-soil periods give physically meaningless
+    VWC and must be masked using the co-located soil temperature.
+  irrigated_stations: unknown
+- name: Nebraska Agricultural Water Management Network and NRD irrigation soil-water networks
+  short_id: nebraska_nawmn_nrd
+  category: in_situ_network
+  description: In-field soil-water monitoring run by UNL extension (NAWMN) and by Nebraska's Natural Resources
+    Districts for irrigation scheduling, with sensors placed inside working center-pivot fields.
+  access_method: UNL water extension pages and individual NRD portals (e.g. Upper Big Blue, Central Platte,
+    Little Blue NRD); much of it is by request to the district rather than bulk download.
+  base_url: https://water.unl.edu/
+  auth: Varies by district; often by request/agreement, some public summaries
+  confidence: recalled
+  priority: 1
+  depths_cm: ~30, 60, 90, 120 (1, 2, 3, 4 ft) — the classic irrigation-scheduling profile
+  sensor_type: Watermark granular-matrix (matric potential) sensors predominate; some capacitance probes
+    and neutron-probe access tubes
+  spatial_coverage: Nebraska, hundreds to >1000 cooperator fields across NRDs
+  temporal_coverage: ~2005- (NAWMN); NRD programs vary
+  temporal_resolution: Daily to weekly readings; logged sites sub-daily
+  key_variables:
+  - soil_matric_potential
+  - soil_water_depletion
+  - irrigation_applied
+  - crop_stage
+  file_formats:
+  - CSV
+  - XLSX
+  - PDF summaries
+  in_ismn: 'no'
+  licence: Varies by NRD; some cooperator data confidential
+  n_stations_or_size: '>1000 cooperator fields historically; active logged subset far smaller'
+  irrigated_relevance: This is the single best US source of sensors physically inside irrigated fields,
+    with matched irrigation-application records — exactly the ground truth missing from mesonets sited
+    on grass plots. Upper Big Blue and Central Platte NRDs cover the most intensively pivot-irrigated
+    counties in the country.
+  gotchas: Watermark sensors report matric potential (kPa) not VWC, saturate above ~-10 kPa, and lose
+    accuracy in dry sands — conversion to VWC needs soil-specific curves. Data are fragmented across districts
+    and often not machine-readable.
+  irrigated_stations: 'yes'
+- name: USDA-NRCS AWDB REST API (National Water and Climate Center)
+  short_id: nrcs_awdb_rest_api
+  category: in_situ_network
+  description: The programmatic service behind SCAN, SNOTEL, SNOLITE, SCAN-partner and COOP stations,
+    serving station metadata and element time series.
+  access_method: REST/JSON; endpoints /stations, /data, /reference-data, /forecasts with parameters stationTriplets,
+    elements (SMS, STO), duration, beginDate, endDate; Swagger UI documents the schema. A legacy SOAP
+    service (awdbWebService ...?WSDL) still exists.
+  base_url: https://wcc.sc.egov.usda.gov/awdbRestApi/services/v1/
+  auth: none
+  confidence: recalled
+  priority: 1
+  sensor_type: n/a (service layer over Hydra Probe networks)
+  depths_cm: 'requested via heightDepth in negative inches: -2, -4, -8, -20, -40'
+  n_stations_or_size: ~1,200+ stations across SCAN/SNOTEL/SNOLITE/other networks
+  spatial_coverage: United States and territories
+  temporal_coverage: full period of record per station (1980s-present)
+  temporal_resolution: HOURLY, DAILY, MONTHLY, SEMIMONTHLY, plus instantaneous
+  key_variables:
+  - SMS
+  - STO
+  - PREC
+  - PRCP
+  - TAVG
+  - WTEQ
+  - SNWD
+  file_formats:
+  - JSON
+  - CSV
+  licence: US Government public domain
+  in_ismn: n/a (access layer)
+  irrigated_relevance: This is the canonical way to pull the SCAN stations that sit on irrigated farmland;
+    station metadata returns county/lat/lon but no irrigation flag.
+  gotchas: Station identifiers are triplets like '2027:CA:SCAN'; requests are rate-limited and long multi-station
+    period-of-record pulls time out, so chunk by station-year. Domain has been migrating toward nwcc-apps.sc.egov.usda.gov.
+  irrigated_stations: 'yes'
+- name: Oklahoma Mesonet
+  short_id: oklahoma_mesonet
+  category: in_situ_network
+  description: Statewide 120-station mesonet (>=1 station per county) with continuous soil water measurements
+    since 1996, the longest dense state soil-moisture record in the US.
+  access_method: Bulk MTS/daily text files over HTTPS plus interactive retrieval pages; no formal REST
+    API.
+  base_url: https://www.mesonet.org/
+  auth: Free for research/education; commercial use requires a license agreement with the Oklahoma Climatological
+    Survey.
+  confidence: recalled
+  priority: 1
+  depths_cm: 5, 25, 60, 75
+  sensor_type: Campbell Scientific 229-L heat-dissipation matric-potential sensors (converted to Fractional
+    Water Index and to VWC via site-specific calibration)
+  spatial_coverage: Oklahoma, ~120 stations statewide
+  temporal_coverage: 1994- (soil moisture from 1996)
+  temporal_resolution: 5-min / 15-min, aggregated hourly and daily
+  key_variables:
+  - matric_potential
+  - fractional_water_index
+  - volumetric_water_content
+  - soil_temperature
+  - precipitation
+  - air_temperature
+  - relative_humidity
+  - solar_radiation
+  - wind
+  file_formats:
+  - MTS text
+  - CSV
+  in_ismn: unknown
+  licence: Free research/education use under Oklahoma Mesonet data policy; redistribution restricted.
+  n_stations_or_size: ~120 stations
+  irrigated_relevance: Most sites are rainfed rangeland/dryland crops, but Panhandle stations (e.g. Goodwell,
+    Hooker, Boise City, Eva) sit in the heavily center-pivot-irrigated Ogallala district. Stations are
+    sited on native sod, so they sample the dryland reference condition adjacent to irrigated fields rather
+    than the irrigated field itself.
+  gotchas: The native measurement is matric potential, not VWC — converting to volumetric water content
+    needs the published site soil-characteristic curves and is the main source of error. Sensor drift/replacement
+    creates step changes in long records.
+  irrigated_stations: 'yes'
+- name: SNO OSR / TREMA and OMERE — Tensift-Haouz (Morocco) and Merguellil (Tunisia) irrigated observatories
+  short_id: osr_maghreb_irrigated
+  category: in_situ_network
+  description: CESBIO/IRD-run North African observatories instrumented specifically over irrigated wheat,
+    olive and market-garden plots in semi-arid Morocco and Tunisia.
+  access_method: SNO OSR / Theia data pages and direct request to CESBIO and the LMI TREMA / OMERE consortia.
+  base_url: https://osr-cesbio.ups-tlse.fr
+  auth: data request / research agreement
+  confidence: recalled
+  priority: 1
+  sensor_type: TDR and impedance (CS616), capacitance probes; co-located eddy-covariance and scintillometers
+  depths_cm: 5, 10, 20, 30, 40 (site-dependent, some to 100)
+  spatial_coverage: Tensift-Haouz plain around Marrakech (R3, Chichaoua, Agdal olive orchard) and the
+    Merguellil catchment / Kairouan plain, Tunisia
+  temporal_coverage: ~2002-present (site-dependent)
+  temporal_resolution: 30 min
+  key_variables:
+  - soil moisture
+  - surface energy fluxes
+  - irrigation dates and amounts
+  - crop phenology
+  - LAI
+  file_formats:
+  - csv
+  licence: by agreement; open for collaborative research
+  n_stations_or_size: order 10-20 instrumented plots across the two observatories
+  in_ismn: 'no'
+  irrigated_relevance: 'Purpose-built for irrigated agriculture: flood- and drip-irrigated wheat and olives
+    with logged irrigation events, and the canonical benchmark for Sentinel-1/SMAP irrigation-mapping
+    algorithms in the Mediterranean.'
+  gotchas: Plot-scale and campaign-oriented rather than a continuous gridded network — series are short
+    and scattered, and access typically requires contacting the PI rather than a self-service download.
+  irrigated_stations: 'yes'
+- name: OzNet Murrumbidgee Soil Moisture Monitoring Network
+  short_id: oznet_murrumbidgee
+  category: in_situ_network
+  description: Long-running ~38-station profile soil moisture network across the Murrumbidgee catchment,
+    NSW, Australia, and the primary Southern Hemisphere satellite cal/val network.
+  access_method: Bulk download from the OzNet site (registration form) and via the ISMN harmonised archive.
+  base_url: https://www.oznet.org.au
+  auth: free registration / data request form
+  confidence: recalled
+  priority: 1
+  sensor_type: impedance (Campbell CS615/CS616 water content reflectometers), Stevens Hydra Probe at surface
+  depths_cm: 0-5 (0-8 at some), 0-30, 30-60, 60-90
+  spatial_coverage: Murrumbidgee catchment, NSW (Yanco, Kyeamba, Adelong sub-networks)
+  temporal_coverage: 2001-present
+  temporal_resolution: 20 min / hourly
+  key_variables:
+  - soil moisture
+  - soil temperature
+  - rainfall
+  - surface temperature
+  file_formats:
+  - csv
+  - ismn ascii
+  licence: free for research, citation/acknowledgement required
+  n_stations_or_size: ~38 stations (Yanco ~13, Kyeamba ~14, Adelong ~6)
+  in_ismn: 'yes'
+  irrigated_relevance: The Yanco sub-network sits inside the Murrumbidgee Irrigation Area, with several
+    stations (Y-series near Yanco Agricultural Institute) in flood-irrigated rice/cereal paddocks. It
+    is the best-documented irrigated in-situ site in Australia and a SMAP/SMOS core validation site.
+  gotchas: CS615/CS616 output is temperature- and salinity-sensitive and site-specifically calibrated;
+    station availability and naming changed across the 2001-2010 and post-2010 phases.
+  irrigated_stations: unknown
+- name: REMEDHUS
+  short_id: remedhus
+  category: in_situ_network
+  description: Soil Moisture Measurement Station Network of the University of Salamanca in the semi-arid
+    Duero basin, one of the longest-running European satellite cal/val networks.
+  access_method: ISMN (network REMEDHUS) is the reliable route; direct requests to the University of Salamanca
+    hydrology group for full-depth and extra variables
+  base_url: https://ismn.earth/
+  auth: free ISMN registration
+  confidence: recalled
+  priority: 1
+  sensor_type: capacitance (Stevens Hydra Probe)
+  depths_cm: 0-5 (primary); some stations with deeper profile and capacitance probes to ~100
+  spatial_coverage: Duero basin, Zamora/Salamanca, Spain (~1300 km2)
+  temporal_coverage: 2005-present
+  temporal_resolution: hourly
+  n_stations_or_size: ~20-24 stations
+  key_variables:
+  - volumetric soil moisture
+  - soil temperature
+  - precipitation
+  file_formats:
+  - ISMN ASCII/CEOP
+  licence: ISMN terms, citation required
+  in_ismn: 'yes'
+  irrigated_relevance: Land use is mixed rainfed cereal, vineyard, fallow and a minority of irrigated
+    plots (irrigated maize/sugar beet occurs in the area) - individual station land-use flags must be
+    checked, as several stations do show irrigation-driven summer wetting.
+  gotchas: Predominantly a 0-5 cm network, so root-zone applications need modelling; Hydra Probe dielectric-to-VWC
+    conversion differs between published versions.
+  irrigated_stations: unknown
+- name: Soil Climate Analysis Network (SCAN)
+  short_id: scan
+  category: in_situ_network
+  description: USDA-NRCS national soil moisture and climate network concentrated on agricultural and rangeland
+    soils.
+  access_method: AWDB REST API, NWCC Report Generator CSV URLs, or the station-level web reports; network
+    code SCAN.
+  base_url: https://wcc.sc.egov.usda.gov/nwcc/
+  auth: none
+  confidence: recalled
+  priority: 1
+  sensor_type: FDR/impedance (Stevens Hydra Probe, some older Vitel Hydra)
+  depths_cm: 5, 10, 20, 51, 102 (2, 4, 8, 20, 40 inches)
+  n_stations_or_size: ~215-220 active stations
+  spatial_coverage: All 50 states plus PR/VI; densest in the South, Great Plains and West
+  temporal_coverage: 1991-present (most stations post-2000)
+  temporal_resolution: hourly and daily (sub-hourly at newer sites)
+  key_variables:
+  - SMS soil moisture %
+  - STO soil temperature
+  - precipitation
+  - air temperature
+  - relative humidity
+  - wind
+  - solar radiation
+  file_formats:
+  - CSV
+  - JSON (REST API)
+  licence: US Government public domain
+  in_ismn: 'yes'
+  irrigated_relevance: SCAN is the main federal network with stations actually on working farms, and several
+    sit on or immediately adjacent to irrigated cropland (e.g. sites in AZ, CA Central Valley, NE, TX
+    High Plains, MS Delta); irrigation is not flagged in the metadata so it must be inferred from site
+    notes.
+  gotchas: Depths are reported as negative inches in the API; soil texture/bulk-density metadata is sparse
+    and some sensors read >saturation after rewiring.
+  irrigated_stations: 'yes'
+- name: SMOSMANIA (Meteo-France)
+  short_id: smosmania
+  category: in_situ_network
+  description: Meteo-France operational soil moisture transect across southern France, built on the RADOME/SYNOP
+    automatic weather station network for SMOS and SMAP cal/val.
+  access_method: Distributed through ISMN (network SMOSMANIA); raw operational archive via Meteo-France
+    data services on request
+  base_url: https://ismn.earth/
+  auth: free ISMN registration
+  confidence: recalled
+  priority: 1
+  sensor_type: impedance (Delta-T ThetaProbe ML2X, later ML3)
+  depths_cm: 5, 10, 20, 30
+  spatial_coverage: Southern France, Atlantic-to-Mediterranean transect (plus later northern extension)
+  temporal_coverage: 2007-present
+  temporal_resolution: 12 min raw, hourly distributed
+  n_stations_or_size: ~21-25 stations
+  key_variables:
+  - volumetric soil moisture
+  - soil temperature
+  - standard SYNOP meteorology
+  file_formats:
+  - ISMN ASCII/CEOP
+  licence: ISMN terms; Meteo-France restrictions on raw data
+  in_ismn: 'yes'
+  irrigated_relevance: Plots are bare/grass reference surfaces at weather stations, not irrigated cropland,
+    though several sit inside irrigated Mediterranean and Garonne valley districts and so sample the regional
+    climate but not the irrigation itself.
+  gotchas: Site-specific gravimetric calibration of the ThetaProbes matters; some stations have long gaps
+    and sensor replacements.
+  irrigated_stations: 'no'
+- name: TERENO (Terrestrial Environmental Observatories)
+  short_id: tereno
+  category: in_situ_network
+  description: Helmholtz network of four German observatories (Eifel/Lower Rhine incl. Rollesbroich, Wuestebach,
+    Selhausen, Merzenhausen; Harz/Central German Lowland; Northeastern German Lowland/Demmin; Bavarian
+    Alps-preAlpine incl. Fendt, Graswang, Rottenbuch) with dense SoilNet wireless soil moisture clusters
+    and cosmic-ray neutron probes.
+  access_method: TEODOOR web portal with free registration; per-station CSV/NetCDF download; subset of
+    stations mirrored into ISMN
+  base_url: https://teodoor.icg.kfa-juelich.de/
+  auth: free registration / data-use agreement
+  confidence: recalled
+  priority: 1
+  sensor_type: FDR/capacitance (Decagon 5TE, Hydra Probe) plus CRNS and some TDR
+  depths_cm: 5, 20, 50 (SoilNet); CRNS integrates ~0-30 depending on wetness
+  spatial_coverage: Germany, four observatories
+  temporal_coverage: ~2008/2010-present
+  temporal_resolution: 15 min to hourly
+  n_stations_or_size: hundreds of SoilNet nodes; Rollesbroich alone ~600 sensors at 150 locations
+  key_variables:
+  - volumetric soil moisture
+  - soil temperature
+  - precipitation
+  - eddy-covariance fluxes
+  file_formats:
+  - CSV
+  - NetCDF
+  licence: data-use agreement, generally CC BY-like with citation
+  in_ismn: partial
+  irrigated_relevance: 'Essentially no irrigation: Rollesbroich is grassland, Wuestebach spruce forest,
+    Selhausen/Merzenhausen rainfed arable loess. Useful as a rainfed control, not an irrigation signal
+    source.'
+  gotchas: Portal metadata and station naming are inconsistent between TEODOOR and ISMN; Wuestebach was
+    partly deforested in 2013, creating a step change.
+  irrigated_stations: 'no'
+- name: Tibet-Obs (Maqu, Ngari/Ali, Pali networks)
+  short_id: tibet_obs
+  category: in_situ_network
+  description: University of Twente ITC / ITP-CAS multi-scale soil moisture and temperature networks on
+    the Tibetan Plateau spanning wet alpine meadow (Maqu), cold desert (Ngari) and southern plateau (Pali)
+    regimes.
+  access_method: ISMN harmonised download; source files also via the National Tibetan Plateau Data Center.
+  base_url: https://ismn.earth
+  auth: free registration (ISMN and TPDC)
+  confidence: recalled
+  priority: 1
+  sensor_type: capacitance/frequency-domain (Decagon EC-TM and 5TM)
+  depths_cm: 5, 10, 20, 40 (80 at some Maqu stations)
+  spatial_coverage: 'Tibetan Plateau: Maqu (NE, upper Yellow River), Ngari/Ali (W, arid), Pali (S)'
+  temporal_coverage: 2008-present (Maqu 2008-, Ngari and Pali 2010-)
+  temporal_resolution: 15 min
+  key_variables:
+  - volumetric soil moisture
+  - soil temperature
+  file_formats:
+  - ismn ascii
+  - csv
+  licence: free for research with citation
+  n_stations_or_size: ~55-60 stations across the three networks
+  in_ismn: 'yes'
+  irrigated_relevance: No irrigation — pure natural-land reference, valuable as a negative control when
+    training irrigation-detection models.
+  gotchas: EC-TM/5TM readings in high-organic alpine meadow soils need site-specific calibration; freeze-thaw
+    periods produce large apparent-permittivity artefacts that must be masked.
+  irrigated_stations: unknown
+- name: TxSON — Texas Soil Observation Network (with Texas Water Observatory)
+  short_id: txson
+  category: in_situ_network
+  description: Dense 40-station SMAP core validation network on the Edwards Plateau near Fredericksburg,
+    Texas, designed to sample a full 36 km satellite footprint at nested 3/9/36 km scales.
+  access_method: Bureau of Economic Geology / UT Austin data pages, and mirrored in the ISMN archive.
+  base_url: https://www.beg.utexas.edu/research/programs/txson
+  auth: Open; ISMN copy requires a free ISMN account
+  confidence: recalled
+  priority: 1
+  depths_cm: 5, 10, 20, 50, 100
+  sensor_type: Campbell Scientific CS655 (plus Stevens Hydra Probe at some profiles)
+  spatial_coverage: ~36 km x 36 km around Fredericksburg, Texas Hill Country; 40 stations. Texas Water
+    Observatory adds ~10-12 instrumented sites along a Brazos basin transect.
+  temporal_coverage: 2015- (TxSON); ~2017- (TWO)
+  temporal_resolution: 30-min
+  key_variables:
+  - volumetric_water_content
+  - soil_temperature
+  - bulk_electrical_conductivity
+  - precipitation
+  file_formats:
+  - CSV
+  - ISMN ASCII
+  in_ismn: 'yes'
+  licence: Open research use with citation
+  n_stations_or_size: 40 TxSON stations; ~10-12 TWO sites
+  irrigated_relevance: Not irrigated — shallow rocky rangeland. Useful as a dryland/rocky-soil counterexample
+    and as an ISMN-format template. Texas Water Observatory (https://two.tamu.edu/) does include cropland
+    sites in the Brazos basin where supplemental irrigation occurs.
+  gotchas: Very shallow soils over limestone mean sensors at 50-100 cm are missing or in rock at many
+    stations. The nested design makes stations spatially autocorrelated — do not treat the 40 profiles
+    as independent samples.
+  irrigated_stations: 'no'
+- name: U.S. Climate Reference Network (USCRN) soil moisture/temperature
+  short_id: uscrn
+  category: in_situ_network
+  description: NOAA's benchmark climate network with triplicate soil moisture and soil temperature profiles
+    at every CONUS station.
+  access_method: Anonymous HTTPS directory listing of fixed-width ASCII files (subhourly01, hourly02,
+    daily01, monthly01); also THREDDS/AWS mirror and the NCEI CRN access portal.
+  base_url: https://www.ncei.noaa.gov/pub/data/uscrn/products/
+  auth: none
+  confidence: recalled
+  priority: 1
+  sensor_type: FDR/impedance (Stevens Hydra Probe II SDI-12, 3 replicates per depth)
+  depths_cm: 5, 10, 20, 50, 100
+  n_stations_or_size: ~114 CONUS stations with soil sensors (139 stations total incl. AK/HI)
+  spatial_coverage: CONUS + Alaska + Hawaii
+  temporal_coverage: soil sensors installed 2009-2011 through present; air/precip since 2000
+  temporal_resolution: 5-min (subhourly), hourly, daily, monthly
+  key_variables:
+  - soil_moisture_volumetric
+  - soil_temperature
+  - precipitation
+  - air_temperature
+  - surface_temperature
+  - solar_radiation
+  file_formats:
+  - fixed-width ASCII (.txt)
+  - netCDF (THREDDS)
+  licence: US Government public domain / NOAA open data
+  in_ismn: 'yes'
+  irrigated_relevance: Stations are deliberately sited in undisturbed natural or unmanaged settings, so
+    essentially none sit on irrigated cropland; a few (e.g. Nebraska, Kansas, Texas panhandle sites) are
+    embedded in irrigated agricultural landscapes but the footprint itself is unmanaged grass.
+  gotchas: Triplicate sensors per depth must be QC-screened and averaged; -9999 fill values and calibration
+    offsets differ between the raw hourly02 columns and the derived soil products.
+  irrigated_stations: 'no'
 - name: AIM-HPA — Annual Irrigation Maps, High Plains Aquifer (Deines et al. 2019)
   short_id: aim_hpa
   category: irrigation_extent
@@ -1785,6 +2735,1141 @@ sources:
     shifts the daily aggregation to local time; be consistent across your whole database or you inject
     a systematic offset. Not an official Copernicus product — you are trusting Open-Meteo''s regridding
     and unit conversions, so spot-check against a direct CDS pull.'
+- name: AMMA-CATCH (Benin, Niger, Mali)
+  short_id: amma_catch
+  category: in_situ_network
+  description: French-led long-term West African observatory with deep soil moisture profiles across a
+    Sahel-to-Sudanian rainfall gradient.
+  access_method: AMMA-CATCH database portal with per-site time-series download; also harmonised in the
+    ISMN.
+  base_url: https://amma-catch.obs-mip.fr
+  auth: free registration
+  confidence: recalled
+  priority: 2
+  sensor_type: impedance (CS616), capacitance probes, and neutron-probe access tubes for deep profiles
+  depths_cm: 5, 10, 20, 40, 50, 100 and deeper (neutron profiles to several metres at some sites)
+  spatial_coverage: Ouémé (Benin), Niamey/Wankama (Niger), Gourma/Agoufou (Mali)
+  temporal_coverage: 1990s-present (continuous soil moisture largely 2005-present)
+  temporal_resolution: 5-30 min
+  key_variables:
+  - soil moisture
+  - soil temperature
+  - water table depth
+  - fluxes
+  - rainfall
+  file_formats:
+  - csv
+  - netcdf
+  - ismn ascii
+  licence: open for research, CC-BY-style with citation
+  n_stations_or_size: a few tens of soil moisture profiles across three mesoscale sites
+  in_ismn: 'yes'
+  irrigated_relevance: Essentially all rainfed — its value is as a West African dryland baseline against
+    which irrigated Sahelian valley-bottom plots can be contrasted.
+  gotchas: Sandy Sahelian soils drain extremely fast, so surface probes show spiky, short-lived wetting
+    that is easily confused with irrigation-like signals in satellite retrievals.
+  irrigated_stations: unknown
+- name: 'USDA-ARS Micronet: Little Washita and Fort Cobb watersheds (OK)'
+  short_id: ars_micronet_ok
+  category: in_situ_network
+  description: Dense ARS Grazinglands Research Laboratory soil moisture/meteorological micronets in two
+    SMAP/SMOS calibration-validation watersheds in southwest Oklahoma.
+  access_method: ARS/Oklahoma Mesonet-hosted data pages and the ARS STEWARDS/Ag Data Commons archives;
+    bulk CSV by station-year.
+  base_url: https://www.ars.usda.gov/plains-area/el-reno-ok/grazinglands-research-laboratory/
+  auth: none
+  confidence: recalled
+  priority: 2
+  sensor_type: FDR/impedance (Stevens Hydra Probe; earlier Vitel/Campbell 229)
+  depths_cm: 5, 25, 45 (plus 60/75 at some stations)
+  n_stations_or_size: ~20 Little Washita stations, ~15 Fort Cobb stations
+  spatial_coverage: Little Washita (~610 km2) and Fort Cobb (~786 km2) watersheds, SW Oklahoma
+  temporal_coverage: Little Washita 1993-present; Fort Cobb ~2005-present
+  temporal_resolution: 5-minute to hourly
+  key_variables:
+  - volumetric soil moisture
+  - soil temperature
+  - precipitation
+  - air temperature
+  - relative humidity
+  - wind
+  file_formats:
+  - CSV
+  - fixed-width ASCII
+  licence: US Government public domain
+  in_ismn: 'yes'
+  irrigated_relevance: Predominantly rangeland and rainfed winter wheat; some center-pivot irrigated peanut/cotton
+    exists in the Fort Cobb watershed but the micronet stations themselves are not in irrigated fields.
+  gotchas: Distribution has moved repeatedly between ARS lab pages, the Oklahoma Mesonet host and Ag Data
+    Commons, so URLs go stale; sensor model changed mid-record at several stations.
+  irrigated_stations: 'yes'
+- name: South Fork Iowa River watershed network (ARS NLAE, Ames IA)
+  short_id: ars_south_fork
+  category: in_situ_network
+  description: SMAP core validation network in intensively tile-drained Corn Belt cropland, the main federal
+    cropland soil moisture reference in the Midwest.
+  access_method: NSIDC SMAP in-situ core validation collection (NSIDC-0712) and USDA Ag Data Commons deposits;
+    NSIDC Earthdata download.
+  base_url: https://nsidc.org/data/nsidc-0712
+  auth: free NASA Earthdata Login for NSIDC
+  confidence: recalled
+  priority: 2
+  sensor_type: FDR/impedance (Stevens Hydra Probe II)
+  depths_cm: 5, 10, 20, 50
+  n_stations_or_size: ~20 stations over ~780 km2
+  spatial_coverage: South Fork of the Iowa River, north-central Iowa
+  temporal_coverage: ~2013-present
+  temporal_resolution: hourly (also 30-min raw)
+  key_variables:
+  - volumetric soil moisture
+  - soil temperature
+  - precipitation
+  file_formats:
+  - CSV
+  - ASCII
+  licence: US Government public domain / NSIDC open
+  in_ismn: partial
+  irrigated_relevance: Rainfed tile-drained corn-soybean, not irrigated, but it is the closest federal
+    analogue to managed row-crop soil moisture and a good baseline against which irrigated Corn Belt pixels
+    can be contrasted.
+  gotchas: Tile drainage produces drydowns unlike natural soils; NSIDC-0712 bundles many watersheds with
+    inconsistent per-network file conventions.
+  irrigated_stations: 'no'
+- name: Brazilian soil moisture observations (CEMADEN, INMET, SONTER)
+  short_id: brazil_soil_moisture
+  category: in_situ_network
+  description: Brazil's in-situ soil moisture comes mainly from CEMADEN's hazard-monitoring sensors, research
+    networks contributed to the ISMN (reported as SONTER), and INMET's automatic station archive.
+  access_method: CEMADEN interactive map and data download; INMET historical-data downloads by station
+    and year; SONTER-labelled data via the ISMN.
+  base_url: https://portal.inmet.gov.br/dadoshistoricos
+  auth: free (INMET, CEMADEN); free registration (ISMN)
+  confidence: recalled
+  priority: 2
+  sensor_type: capacitance/FDR at CEMADEN and research sites; INMET stations are largely soil-temperature
+    only
+  depths_cm: typically 10, 20, 40 (site-dependent)
+  spatial_coverage: Brazil-wide; CEMADEN densest in the landslide-prone southeast, research sites in Amazonia,
+    Cerrado and the south
+  temporal_coverage: ~2013-present (CEMADEN); 2000-present (INMET AWS)
+  temporal_resolution: hourly or sub-hourly
+  key_variables:
+  - soil moisture
+  - rainfall
+  - soil temperature
+  - standard meteorology
+  file_formats:
+  - csv
+  - ismn ascii
+  licence: open government data with attribution
+  n_stations_or_size: hundreds of CEMADEN sensor sites; ~600 INMET AWS; SONTER a research-scale network
+  in_ismn: partial
+  irrigated_relevance: 'Weak: Brazil''s centre-pivot belts (western Bahia, Minas Gerais, Goiás) have almost
+    no dedicated in-situ soil moisture, so irrigated ground truth must come from farm-level or campaign
+    data.'
+  gotchas: Do not assume INMET AWS report soil moisture — most report only soil temperature. I could not
+    verify SONTER's exact scope or URL, so treat that identification as provisional.
+  irrigated_stations: unknown
+- name: 'Chinese irrigation-district research stations: CERN North China Plain and Xinjiang oases'
+  short_id: cern_ncp_xinjiang
+  category: in_situ_network
+  description: Chinese Ecosystem Research Network agro-stations on the irrigated North China Plain (Luancheng,
+    Yucheng) plus Xinjiang drip-irrigated cotton research sites (Shihezi/Manas, CAS Fukang).
+  access_method: CERN/National Ecosystem Science Data Center dataset pages; Xinjiang sites largely only
+    through published papers or direct contact with the host institute.
+  base_url: http://www.nesdc.org.cn
+  auth: registration; some datasets by request only
+  confidence: recalled
+  priority: 2
+  sensor_type: neutron probe, TDR and capacitance; gravimetric sampling in the long historical record
+  depths_cm: 10 cm increments from 10 to 200 (neutron/gravimetric); TDR typically 5-100
+  spatial_coverage: North China Plain (Hebei, Shandong) and Xinjiang (Manas River basin, Fukang, Tarim
+    oases)
+  temporal_coverage: 1981-present (CERN long-term); Xinjiang sites mostly 2005-present, campaign-based
+  temporal_resolution: 5-10 daily (neutron/gravimetric), 30 min (automatic)
+  key_variables:
+  - soil moisture profile
+  - groundwater depth
+  - irrigation amounts
+  - crop yield and phenology
+  file_formats:
+  - csv
+  - xlsx
+  licence: restricted / by agreement
+  n_stations_or_size: ~40 CERN stations nationally; a handful of intensively instrumented Xinjiang sites
+  in_ismn: partial
+  irrigated_relevance: Directly targets two of the most heavily irrigated systems on Earth — canal plus
+    tube-well irrigated winter wheat/summer maize double cropping on the North China Plain, and mulched
+    drip-irrigated cotton in Xinjiang, both with recorded irrigation schedules.
+  gotchas: The ISMN 'CHINA' network only covers roughly 1981-1999 gravimetric records from these stations,
+    not the modern automatic data. Xinjiang has no open portal; expect to work from paper supplements.
+  irrigated_stations: unknown
+- name: COSMOS-Europe
+  short_id: cosmos_europe
+  category: in_situ_network
+  description: A harmonised pan-European compilation of CRNS soil moisture from many independently operated
+    stations, published as an ESSD data paper by Bogena et al. (2022).
+  access_method: One-off dataset download from the Forschungszentrum Juelich data repository via the DOI
+    given in the ESSD paper; not a live streaming service.
+  base_url: https://essd.copernicus.org/articles/14/1125/2022/
+  auth: None
+  confidence: recalled
+  priority: 2
+  sensor_type: CRNS (mixed Hydroinnova, Lab-C, Finapp and custom detectors)
+  depths_cm: effective ~10-70, wetness dependent
+  in_ismn: partial
+  spatial_coverage: Europe, order 20+ countries/institutions
+  temporal_coverage: ~2011-2021 in the published release
+  temporal_resolution: hourly, plus daily
+  n_stations_or_size: ~66 stations from ~24 institutions
+  file_formats:
+  - CSV/ASCII per station
+  - metadata table
+  key_variables:
+  - raw and corrected neutron counts
+  - volumetric soil moisture
+  - calibration metadata
+  licence: CC-BY (check the repository record)
+  irrigated_relevance: Includes Mediterranean cropland stations (Iberia, Italy) where irrigation occurs,
+    but irrigation management is not consistently reported per site.
+  gotchas: A static snapshot, not updated operationally, so it will not extend past the publication window.
+    Detector types and N0 calibration protocols differ between contributing groups, which is the main
+    source of cross-station inconsistency.
+  irrigated_stations: unknown
+- name: COSMOS-UK
+  short_id: cosmos_uk
+  category: in_situ_network
+  description: UK Centre for Ecology and Hydrology national CRNS network with co-located point soil moisture,
+    flux and meteorological instruments.
+  access_method: Annual versioned data releases published on the NERC EIDC catalogue (catalogue.ceh.ac.uk);
+    download CSV after accepting the licence. Near-real-time summaries on the COSMOS-UK web pages.
+  base_url: https://cosmos.ceh.ac.uk
+  auth: Free EIDC/NERC registration for the archived datasets
+  confidence: recalled
+  priority: 2
+  sensor_type: CRNS (Hydroinnova CRS-1000/B) plus point FDR/TDT profile sensors and a TDR calibration
+    survey
+  depths_cm: CRNS effective ~10-70; point sensors at 2, 5, 10, 20, 50 typically
+  spatial_coverage: United Kingdom
+  temporal_coverage: 2013-present
+  temporal_resolution: 30 min and daily (level-2 daily is the headline product)
+  n_stations_or_size: ~50 sites
+  key_variables:
+  - volumetric water content
+  - corrected neutron count
+  - precipitation
+  - net radiation
+  - sensible/latent heat flux
+  - soil temperature
+  - snow
+  file_formats:
+  - CSV (daily and 30-min)
+  - site metadata tables
+  licence: Open Government Licence / CC-BY via EIDC
+  in_ismn: 'yes'
+  irrigated_relevance: UK sites are arable and grassland and essentially rainfed; useful as a temperate
+    non-irrigated control rather than an irrigated signal source.
+  gotchas: Each annual EIDC release has its own DOI and the processing chain changes between versions,
+    so pin a version. N0 recalibration after detector maintenance creates step changes in the soil moisture
+    series.
+  irrigated_stations: 'no'
+- name: COSMOS (US cosmic-ray soil moisture observing system)
+  short_id: cosmos_us
+  category: in_situ_network
+  description: The original NSF-funded US network of stationary cosmic-ray neutron probes operated from
+    the University of Arizona.
+  access_method: Per-site ASCII/CSV level-1 and level-2 downloads from the COSMOS web portal; no authenticated
+    API.
+  base_url: http://cosmos.hwr.arizona.edu
+  auth: None (open, citation requested)
+  confidence: recalled
+  priority: 2
+  sensor_type: CRNS (Hydroinnova CRS-1000 moderated/bare neutron counters)
+  depths_cm: effective 12-76 (shallow ~15 when wet, ~70 when dry); depth varies with soil water content
+  in_ismn: partial
+  spatial_coverage: contiguous US plus a few international probes
+  temporal_coverage: ~2010-present; core NSF funding lapsed ~2019 so many sites stopped or went intermittent
+  temporal_resolution: hourly (1 h counts), plus daily aggregates
+  n_stations_or_size: ~70-80 probes at peak
+  file_formats:
+  - ASCII/CSV per site
+  - hourly and daily level-2 soil moisture
+  key_variables:
+  - corrected neutron counts
+  - volumetric soil moisture
+  - atmospheric pressure
+  - relative humidity
+  - incoming neutron intensity
+  licence: Open, cite Zreda et al. 2012
+  irrigated_relevance: Mostly rainfed rangeland and row-crop sites (e.g. SGP/Lamont OK, Bondville IL);
+    dedicated irrigated sites are few, but the CRNS footprint makes these probes a good analogue for detecting
+    irrigation-scale wetting.
+  gotchas: Footprint radius ~240 m at sea level (older literature says ~300 m) and grows with altitude
+    and dryness, so the probe is not a point measurement. N0 is a site-specific calibration constant from
+    a gravimetric soil-sampling campaign in the footprint and is not transferable between detectors, and
+    lattice water, soil organic carbon and biomass all bias it.
+  irrigated_stations: 'yes'
+- name: CosmOz — Australian Cosmic-Ray Neutron Soil Moisture Network (CSIRO)
+  short_id: cosmoz
+  category: in_situ_network
+  description: CSIRO-run network of cosmic-ray neutron probes giving field-scale (hectare) area-average
+    soil moisture at ~20 Australian sites.
+  access_method: Web portal with per-site time-series download; a REST/JSON API has been offered for level-3/4
+    products.
+  base_url: https://cosmoz.csiro.au
+  auth: free registration
+  confidence: recalled
+  priority: 2
+  sensor_type: CRNS (cosmic-ray neutron sensor), several sites co-located with TDR/capacitance profiles
+  depths_cm: effective 10-50 (varies with wetness); co-located point probes typically 5-100
+  spatial_coverage: Australia-wide (Temora, Yanco, Baldry, Daly River, Gnangara, Robson Creek, Weany Creek,
+    Tullochgorum and others)
+  temporal_coverage: 2010-present
+  temporal_resolution: hourly (1 h counts, often smoothed to 6-24 h)
+  key_variables:
+  - area-average volumetric soil moisture
+  - neutron counts
+  - air pressure/humidity corrections
+  file_formats:
+  - csv
+  - json (api)
+  licence: CC-BY (CSIRO data licence)
+  n_stations_or_size: ~20 Australian sites plus affiliated international probes
+  in_ismn: partial
+  irrigated_relevance: The Temora and Yanco sites sit in the Murrumbidgee cropping belt adjacent to irrigated
+    country, and the ~250 m footprint matches irrigated-field scale better than point probes.
+  gotchas: CRNS soil moisture needs site calibration plus corrections for pressure, atmospheric water
+    vapour and lattice/biomass water; effective depth shrinks as soil wets, complicating comparison with
+    fixed-depth probes.
+  irrigated_stations: unknown
+- name: CosmOz (Australian cosmic-ray neutron soil moisture network)
+  short_id: cosmoz_au
+  category: in_situ_network
+  description: CSIRO-operated Australian CRNS network, with a documented REST service and level-4 soil
+    moisture products.
+  access_method: CosmOz web portal plus a REST API for station lists and time series; level-4 products
+    also deposited in the CSIRO Data Access Portal (data.csiro.au).
+  base_url: https://cosmoz.csiro.au
+  auth: None for the public API (registration for some products)
+  confidence: recalled
+  priority: 2
+  sensor_type: CRNS (Hydroinnova CRS-1000), some sites with profile capacitance probes
+  depths_cm: effective ~10-50 depending on wetness
+  in_ismn: partial
+  spatial_coverage: Australia, all major climate zones
+  temporal_coverage: 2010-present
+  temporal_resolution: hourly and daily
+  n_stations_or_size: ~15 original sites, expanded toward ~30 under CosmOz Plus
+  file_formats:
+  - JSON via REST
+  - CSV
+  key_variables:
+  - raw and corrected neutron counts
+  - volumetric soil moisture
+  - pressure
+  - humidity
+  licence: CC-BY (CSIRO)
+  irrigated_relevance: Yanco/Murrumbidgee sites sit in Australia's main irrigation area (rice, cotton,
+    irrigated pasture) and coincide with the OzNet point network and SMAPEx campaigns, making them one
+    of the best CRNS-over-irrigation testbeds.
+  gotchas: Some remote sites have long telemetry gaps and biomass corrections are significant at the woodland
+    sites. As with all CRNS, N0 comes from a local gravimetric campaign and drifts with detector changes.
+  irrigated_stations: unknown
+- name: CTP-SMTMN (Central Tibetan Plateau, Naqu)
+  short_id: ctp_smtmn
+  category: in_situ_network
+  description: Dense 56-station multi-scale soil moisture/temperature network around Naqu built by ITP-CAS
+    (Yang Kun) in nested 1.0/0.3/0.1 degree boxes for coarse-resolution satellite validation.
+  access_method: Download from the National Tibetan Plateau Data Center (TPDC) dataset pages.
+  base_url: https://data.tpdc.ac.cn
+  auth: free registration
+  confidence: recalled
+  priority: 2
+  sensor_type: capacitance (Decagon EC-TM / 5TM)
+  depths_cm: 0-5, 10, 20, 40
+  spatial_coverage: Naqu, central Tibetan Plateau (~31-32N, 91-92E)
+  temporal_coverage: 2010-2016 (some extension later)
+  temporal_resolution: 30 min
+  key_variables:
+  - soil moisture
+  - soil temperature
+  file_formats:
+  - csv
+  - xlsx
+  licence: free for non-commercial research
+  n_stations_or_size: 56 stations
+  in_ismn: partial
+  irrigated_relevance: None — alpine grassland; use as a cold-region reference rather than an irrigation
+    case.
+  gotchas: Winter data are dominated by frozen-soil dielectric behaviour; recalibrated soil-specific coefficients
+    are published alongside the raw dataset and should be used.
+  irrigated_stations: 'no'
+- name: DWD agrometeorological stations / Climate Data Center
+  short_id: dwd_cdc
+  category: in_situ_network
+  description: German Weather Service station network and derived agrometeorological products, providing
+    soil temperature at ~500 stations and model-derived soil moisture on a national grid and per station.
+  access_method: Fully open bulk download from the DWD Open Data server (CDC directory tree, plain HTTP,
+    no key); also CDC portal and the rdwd/wetterdienst client libraries
+  base_url: https://opendata.dwd.de/climate_environment/CDC/
+  auth: none (GeoNutzV / CC BY 4.0 with attribution)
+  confidence: recalled
+  priority: 2
+  sensor_type: in-situ soil temperature probes; soil moisture is largely AMBAV/agrometeorological-model
+    derived rather than measured
+  depths_cm: soil temperature 2, 5, 10, 20, 50, 100; modelled moisture 0-60 as % of usable field capacity
+  spatial_coverage: Germany
+  temporal_coverage: decades for soil temperature; derived soil moisture from ~1991
+  temporal_resolution: hourly and daily
+  n_stations_or_size: ~400-500 stations with soil observations
+  key_variables:
+  - soil temperature
+  - derived soil moisture (% nFK)
+  - precipitation
+  - standard meteorology
+  file_formats:
+  - zipped fixed-width/CSV
+  - GRIB/ASCII grids
+  licence: open (GeoNutzV, CC BY 4.0 equivalent)
+  in_ismn: partial
+  irrigated_relevance: Modelled soil moisture assumes no irrigation, so DWD products will systematically
+    underestimate wetness over irrigated German horticulture (e.g. Lower Saxony, Palatinate) - a useful
+    negative control for irrigation detection.
+  gotchas: Do not treat the derived soil moisture as observations; the % nFK unit needs soil parameters
+    to convert to m3/m3.
+  irrigated_stations: unknown
+- name: HOAL Petzenkirchen
+  short_id: hoal_petzenkirchen
+  category: in_situ_network
+  description: TU Wien Hydrological Open Air Laboratory, a 66 ha instrumented agricultural headwater catchment
+    in Lower Austria with very dense soil moisture instrumentation.
+  access_method: HOAL data portal with registration; also distributed through ISMN (network HOAL)
+  base_url: https://hoal.hydrology.at/
+  auth: free registration / data-sharing agreement
+  confidence: recalled
+  priority: 2
+  sensor_type: FDR/capacitance (Decagon 5TE/TDT), plus TDR and a cosmic-ray probe
+  depths_cm: 5, 10, 20, 50
+  spatial_coverage: 66 ha catchment, Petzenkirchen, Austria
+  temporal_coverage: 2013-present
+  temporal_resolution: 30 min (some 10 min)
+  n_stations_or_size: ~31 soil moisture stations in 66 ha
+  key_variables:
+  - volumetric soil moisture
+  - soil temperature
+  - runoff
+  - precipitation
+  - groundwater
+  - sediment
+  file_formats:
+  - CSV
+  licence: data-sharing agreement, citation required
+  in_ismn: 'yes'
+  irrigated_relevance: Rainfed arable rotation (winter wheat, maize, rapeseed) with no irrigation; its
+    value is as a very high density rainfed benchmark for downscaling and representativeness studies.
+  gotchas: Extremely small domain - useful for sub-pixel variability, useless for satellite pixel-scale
+    validation on its own.
+  irrigated_stations: unknown
+- name: HOBE (Danish Hydrological Observatory)
+  short_id: hobe
+  category: in_situ_network
+  description: Skjern River catchment observatory in western Jutland with a distributed soil moisture
+    network plus flux towers, run by a Danish university consortium.
+  access_method: ISMN (network HOBE); observatory data portal and direct request to the HOBE/University
+    of Copenhagen consortium for full observatory data
+  base_url: https://ismn.earth/
+  auth: free ISMN registration
+  confidence: recalled
+  priority: 2
+  sensor_type: FDR/capacitance (Decagon 5TE)
+  depths_cm: 0-5, 20, 50 (three profiles per station)
+  spatial_coverage: Skjern catchment, Denmark (~2500 km2)
+  temporal_coverage: 2009-present (some series ended mid-2010s)
+  temporal_resolution: 30 min
+  n_stations_or_size: ~30 stations, ~3 profiles each
+  key_variables:
+  - volumetric soil moisture
+  - soil temperature
+  - precipitation
+  - groundwater
+  - fluxes
+  file_formats:
+  - ISMN ASCII/CEOP
+  licence: ISMN terms, citation required
+  in_ismn: 'yes'
+  irrigated_relevance: Western Jutland sandy outwash soils are among the most heavily sprinkler-irrigated
+    croplands in northern Europe, so agricultural HOBE stations can show irrigation pulses - among the
+    few non-Mediterranean European irrigation signals available.
+  gotchas: 5TE requires soil-specific calibration on coarse sands; some stations were decommissioned,
+    so the network thins after ~2016.
+  irrigated_stations: 'yes'
+- name: Argentine INTA and Chilean INIA/CEAZA agrometeorological soil moisture
+  short_id: inta_inia_ceaza_southcone
+  category: in_situ_network
+  description: 'Southern Cone agrometeorological networks: INTA''s Pampas station and soil moisture monitoring
+    in Argentina, and Chile''s INIA Agromet plus CEAZA-Met networks covering irrigated valleys.'
+  access_method: INTA SIGA station portal; INIA Agrometeorología web portal with per-station export; CEAZA-Met
+    portal with CSV export and an API.
+  base_url: https://agrometeorologia.cl
+  auth: free (INIA, CEAZA); free/registration (INTA SIGA)
+  confidence: recalled
+  priority: 2
+  sensor_type: capacitance/FDR; neutron probe and gravimetric at INTA experimental stations
+  depths_cm: typically 10, 20, 30, 50, 100 at equipped sites
+  spatial_coverage: Argentine Pampas (Marcos Juárez, Manfredi, Monte Buey area, Córdoba/Santa Fe/Buenos
+    Aires) and Chile from Coquimbo to the central valley and south
+  temporal_coverage: ~2000s-present (site-dependent)
+  temporal_resolution: hourly / daily
+  key_variables:
+  - soil moisture
+  - reference ET
+  - rainfall
+  - standard meteorology
+  file_formats:
+  - csv
+  - json (api)
+  licence: open with attribution
+  n_stations_or_size: tens to low hundreds of stations per network; soil moisture at a subset
+  in_ismn: partial
+  irrigated_relevance: Chile is the strong case — INIA Agromet and CEAZA stations sit in intensively irrigated
+    vineyards, orchards and Elqui/Limarí valley schemes. Argentine coverage is mostly rainfed Pampas cropping,
+    with irrigated relevance limited to Mendoza and Río Negro.
+  gotchas: Soil moisture is an optional sensor on these agromet stations, so per-station inventories must
+    be checked; Argentina's Monte Buey SMAP cal/val data are campaign-based rather than part of a continuous
+    public network.
+  irrigated_stations: unknown
+- name: Iowa Environmental Mesonet / ISU Soil Moisture Network
+  short_id: iowa_environmental_mesonet
+  category: in_situ_network
+  description: Iowa State University's IEM is both an aggregator of many US networks and the host of the
+    ISU Soil Moisture (AgClimate) Network of research-farm stations with soil moisture profiles.
+  access_method: Bulk request scripts and CGI endpoints under mesonet.agron.iastate.edu (including /agclimate/
+    and /request/), designed for scripted access.
+  base_url: https://mesonet.agron.iastate.edu/agclimate/
+  auth: Open, no key
+  confidence: recalled
+  priority: 2
+  depths_cm: ~5, 10, 20, 50 (2, 4, 8, 20 in) at ISU Soil Moisture sites
+  sensor_type: Stevens Hydra Probe at most ISU sites; sensor model varies by install year
+  spatial_coverage: Iowa, ~20-30 soil-moisture stations, mostly on ISU research farms; IEM aggregates
+    far more networks nationally
+  temporal_coverage: 1986- for AgClimate; modern soil-moisture instrumentation from ~2012
+  temporal_resolution: 15-min, hourly, daily
+  key_variables:
+  - volumetric_water_content
+  - soil_temperature
+  - precipitation
+  - air_temperature
+  - relative_humidity
+  - wind
+  - solar_radiation
+  - reference_et
+  file_formats:
+  - CSV
+  - JSON
+  - GeoJSON
+  in_ismn: unknown
+  licence: Open, public domain / attribution to IEM
+  n_stations_or_size: ~20-30 ISU soil-moisture stations; IEM aggregate is far larger
+  irrigated_relevance: Essentially none — Iowa row-crop agriculture is rainfed. Value here is the excellent
+    scripted-access infrastructure and the fact that IEM also re-serves other networks' data in one consistent
+    format.
+  gotchas: IEM re-hosts other networks with its own QC flags applied — provenance can be ambiguous if
+    you scrape it as a single source. Some ISU stations were relocated, breaking station-ID continuity.
+  irrigated_stations: 'no'
+- name: Italian regional networks (Umbria, Hydrol-Net Perugia, RESPIRA, Calabria)
+  short_id: italian_regional_networks
+  category: in_situ_network
+  description: 'Cluster of Italian regional/university soil moisture networks: the Umbria Region hydrological
+    service stations, the University of Perugia Hydrol-Net catchment sites, the RESPIRA sites, and Calabria
+    regional stations.'
+  access_method: ISMN (networks UMBRIA, HYDROL-NET_PERUGIA, CALABRIA and related Italian entries); regional
+    hydrological service portals (Regione Umbria SIR, ARPACAL) for raw regional data
+  base_url: https://ismn.earth/
+  auth: free ISMN registration; regional portals are open but non-API
+  confidence: recalled
+  priority: 2
+  sensor_type: FDR/capacitance and TDR, mixed by provider
+  depths_cm: typically 10, 25, 45 (Umbria); varies by network
+  spatial_coverage: Central and southern Italy
+  temporal_coverage: ~2010-present, varies
+  temporal_resolution: hourly to daily
+  n_stations_or_size: order of 10-30 stations combined
+  key_variables:
+  - volumetric soil moisture
+  - soil temperature
+  - precipitation
+  file_formats:
+  - ISMN ASCII/CEOP
+  - CSV from regional portals
+  licence: ISMN terms; regional open data
+  in_ismn: partial
+  irrigated_relevance: Umbria and Calabria stations sit in valleys (Tiber, Crati) with substantial irrigated
+    horticulture and orchards, but the stations themselves are generally on rainfed or natural plots -
+    verify per site.
+  gotchas: I could not corroborate whether RESPIRA is currently an ISMN network name - treat that label
+    as unverified. Regional portals expose only interactive charts, so bulk extraction is awkward.
+  irrigated_stations: unknown
+- name: NASA Earthdata Search and the Common Metadata Repository (CMR)
+  short_id: nasa_earthdata_cmr
+  category: in_situ_network
+  description: NASA's cross-DAAC discovery layer, the fastest way to enumerate every NASA-hosted soil
+    moisture collection and granule.
+  access_method: GET https://cmr.earthdata.nasa.gov/search/collections.json?keyword=soil%20moisture&page_size=2000
+    (add &data_center=ORNL_DAAC or &platform=SMAP); granules via /search/granules.json?collection_concept_id=...
+    ; UI at https://search.earthdata.nasa.gov .
+  base_url: https://cmr.earthdata.nasa.gov/search
+  auth: CMR search is open; downloads need a free Earthdata Login (bearer token or .netrc)
+  confidence: recalled
+  priority: 2
+  sensor_type: mostly satellite radiometer/radar; in-situ only via campaign collections
+  depths_cm: satellite 0-5 surface, 0-100 root-zone for SMAP L4
+  in_ismn: 'no'
+  spatial_coverage: global
+  temporal_coverage: 1978-present (SMMR onward); SMAP 2015-present
+  temporal_resolution: sub-daily to monthly
+  n_stations_or_size: tens of thousands of collections
+  file_formats:
+  - HDF5
+  - NetCDF4
+  - GeoTIFF
+  - CSV for campaign data
+  key_variables:
+  - surface and root-zone soil moisture
+  - brightness temperature
+  - backscatter
+  - quality flags
+  licence: Open NASA data policy
+  irrigated_relevance: The gridded products are the target variable that irrigation signals must be detected
+    in; the useful in-situ material is the SMAPVEX/SMEX campaign collections rather than CMR itself.
+  gotchas: Keyword search over-returns; prefer science_keywords or a known short_name. Granule listings
+    can be enormous, so always page and use temporal/bounding-box filters.
+  irrigated_stations: unknown
+- name: Nebraska Mesonet
+  short_id: nebraska_mesonet
+  category: in_situ_network
+  description: Nebraska State Climate Office / University of Nebraska-Lincoln statewide automated weather
+    network, one of the oldest US mesonets, with soil temperature at most sites and soil moisture at a
+    subset.
+  access_method: Web data-download portal; some products via CropWatch and the High Plains Regional Climate
+    Center.
+  base_url: https://mesonet.unl.edu/
+  auth: Open for research; bulk requests via Nebraska State Climate Office
+  confidence: recalled
+  priority: 2
+  depths_cm: 10, 25, 50, 100 at soil-moisture sites (soil temperature at 10 cm bare and sod)
+  sensor_type: Capacitance / impedance probes (Stevens Hydra Probe and CS-series at newer installations)
+  spatial_coverage: Nebraska, ~70 stations
+  temporal_coverage: 1981- (weather); soil moisture at a subset from the 2000s
+  temporal_resolution: Hourly and daily
+  key_variables:
+  - volumetric_water_content
+  - soil_temperature
+  - precipitation
+  - air_temperature
+  - relative_humidity
+  - wind
+  - solar_radiation
+  file_formats:
+  - CSV
+  in_ismn: unknown
+  licence: Open research use with attribution
+  n_stations_or_size: ~70 stations
+  irrigated_relevance: Yes in part — Nebraska is the most heavily irrigated state by area, and Platte
+    Valley and Sandhills stations (e.g. Brule, Gothenburg, North Platte, Clay Center) are surrounded by
+    pivot-irrigated corn. Sensors are generally on grass reference plots, not inside the irrigated field.
+  gotchas: Soil-moisture instrumentation is inconsistent across stations and eras; metadata on sensor
+    model and depth must be pulled per station. Overlaps and shares stations with HPRCC/AWDN, so beware
+    double counting.
+  irrigated_stations: 'yes'
+- name: NEON Soil water content and water salinity (DP1.00094.001)
+  short_id: neon
+  category: in_situ_network
+  description: NSF NEON's standardized soil moisture profiles, five instrumented soil plots per terrestrial
+    site with dense vertical sampling.
+  access_method: NEON Data Portal download or REST API (/api/v0/data/DP1.00094.001/{siteCode}/{YYYY-MM});
+    neonUtilities R and Python packages wrap it.
+  base_url: https://data.neonscience.org/data-products/DP1.00094.001
+  auth: none (optional API token raises rate limits)
+  confidence: recalled
+  priority: 2
+  sensor_type: TDR (Acclima TDR-315/315H)
+  depths_cm: site-specific, up to 8 levels from ~2-6 cm down to ~200 cm
+  n_stations_or_size: 47 terrestrial sites x 5 soil plots
+  spatial_coverage: 20 US ecoclimatic domains incl. Alaska, Hawaii, Puerto Rico
+  temporal_coverage: ~2017-present (a few sites from 2015)
+  temporal_resolution: 1-minute and 30-minute aggregates
+  key_variables:
+  - VSWC volumetric soil water content
+  - VSIC soil ion conductivity
+  - soil temperature (DP1.00041.001)
+  - bulk density and soil physical properties (megapit)
+  file_formats:
+  - CSV
+  - HDF5 (bundled)
+  - AOP-linked metadata
+  licence: CC0 / NEON open data
+  in_ismn: partial
+  irrigated_relevance: Two managed-cropland sites exist (KONA, Konza agricultural, KS and STER, Sterling,
+    CO) but both are dryland/rainfed rotations; NEON has no irrigated-cropland core site.
+  gotchas: Quality flags are extensive and must be applied; sensors at depth are frequently flagged or
+    missing, and site-to-site depth sets are not harmonized.
+  irrigated_stations: 'no'
+- name: NRCS NWCC Report Generator (custom CSV reports)
+  short_id: nrcs_report_generator
+  category: in_situ_network
+  description: URL-templated CSV report service that returns period-of-record SCAN/SNOTEL soil moisture
+    without any API client.
+  access_method: 'HTTP GET with a path-encoded report spec: /reportGenerator/view_csv/customSingleStationReport/{duration}/{stationTriplet}/{begin},{end}/SMS::value,STO::value'
+  base_url: https://wcc.sc.egov.usda.gov/reportGenerator/
+  auth: none
+  confidence: recalled
+  priority: 2
+  sensor_type: n/a (service layer)
+  depths_cm: 'specified inline as SMS:-2:, SMS:-4:, SMS:-8:, SMS:-20:, SMS:-40: (inches)'
+  n_stations_or_size: all AWDB stations
+  spatial_coverage: United States
+  temporal_coverage: POR_BEGIN to POR_END supported
+  temporal_resolution: hourly, daily, monthly
+  key_variables:
+  - SMS
+  - STO
+  - PRCP
+  - TAVG
+  file_formats:
+  - CSV with commented header
+  licence: US Government public domain
+  in_ismn: n/a
+  irrigated_relevance: Simplest route to bulk-download the handful of SCAN stations on irrigated fields
+    for a training set.
+  gotchas: URL encoding of the report spec is fragile (pipes, colons, percent-encoded quotes) and the
+    leading comment block must be stripped before parsing; multi-station reports silently truncate.
+  irrigated_stations: 'yes'
+- name: New York State Mesonet (with Delaware Environmental Observing System)
+  short_id: nysm_deos
+  category: in_situ_network
+  description: The NYS Mesonet is a modern, uniformly instrumented 126-station network with soil moisture
+    at every standard site; DEOS provides comparable Mid-Atlantic coverage across Delaware and neighbouring
+    states.
+  access_method: NYSM data request/agreement portal at nysmesonet.org; DEOS download pages at deos.udel.edu.
+  base_url: https://nysmesonet.org/
+  auth: NYSM requires a signed data-use agreement and account; DEOS largely open
+  confidence: recalled
+  priority: 2
+  depths_cm: 'NYSM: 5, 25, 50 at all 126 standard sites. DEOS: ~5, 20, 50 at instrumented sites'
+  sensor_type: Stevens Hydra Probe (both networks)
+  spatial_coverage: New York State, 126 standard sites plus 17 flux and 17 profiler sites; Delaware plus
+    parts of MD/PA/NJ for DEOS (~60+ stations)
+  temporal_coverage: NYSM 2016-; DEOS ~2004-
+  temporal_resolution: 5-min
+  key_variables:
+  - volumetric_water_content
+  - soil_temperature
+  - bulk_electrical_conductivity
+  - precipitation
+  - air_temperature
+  - relative_humidity
+  - wind
+  - solar_radiation
+  - snow_depth
+  file_formats:
+  - CSV
+  - NetCDF (NYSM flux sites)
+  in_ismn: unknown
+  licence: 'NYSM: research use under data-use agreement, redistribution prohibited. DEOS: open with attribution.'
+  n_stations_or_size: 126 NYSM standard sites; ~60+ DEOS stations
+  irrigated_relevance: NYSM is essentially all rainfed and is best used as a uniform-instrumentation control
+    network. DEOS covers the Delmarva Peninsula, where irrigated corn and soybean under center pivot are
+    common, so a subset of DEOS sites has genuine irrigation context.
+  gotchas: NYSM's data-use agreement blocks redistribution, which complicates publishing a derived training
+    set. Uniform siting on mowed grass means the soil moisture is a reference-surface value, not a cropland
+    value.
+  irrigated_stations: 'yes'
+- name: ORNL DAAC (NASA Distributed Active Archive Center for Biogeochemical Dynamics)
+  short_id: ornl_daac
+  category: repository
+  description: NASA DAAC holding the in-situ soil moisture field campaigns used for satellite calibration
+    and validation.
+  access_method: Dataset browse at https://daac.ornl.gov ; programmatic discovery through NASA CMR (see
+    nasa_earthdata_cmr entry) filtered with data_center=ORNL_DAAC; downloads over HTTPS with an Earthdata
+    Login token, plus THREDDS/OPeNDAP for gridded products.
+  base_url: https://daac.ornl.gov
+  auth: Free NASA Earthdata Login required for download
+  confidence: recalled
+  priority: 2
+  sensor_type: 'campaign mix: gravimetric, TDR, impedance (Stevens Hydra), airborne radiometer ground
+    truth'
+  depths_cm: typically 0-5 surface plus profiles to 100
+  in_ismn: partial
+  spatial_coverage: global, US-heavy
+  temporal_coverage: 1980s-present
+  temporal_resolution: campaign-specific, often daily during intensive observation periods
+  n_stations_or_size: thousands of datasets
+  file_formats:
+  - CSV
+  - NetCDF
+  - GeoTIFF
+  - HDF
+  key_variables:
+  - volumetric soil moisture
+  - soil temperature
+  - vegetation water content
+  - bulk density
+  - texture
+  licence: Open, NASA data policy, citation required
+  irrigated_relevance: SMEX02 (Iowa), SMEX04 (Arizona/Sonora), SMAPVEX15 (Arizona) and SGP97/99 include
+    irrigated or partly irrigated fields with dense ground sampling, which is exactly the kind of ground
+    truth that is hard to find elsewhere.
+  gotchas: Campaign datasets are short (weeks) and use inconsistent file layouts between campaigns, so
+    each needs bespoke parsing. Earthdata Login tokens must be passed through redirects or downloads silently
+    return HTML.
+- name: PANGAEA
+  short_id: pangaea
+  category: repository
+  description: AWI/MARUM data publisher for earth and environmental science, with strongly curated tabular
+    datasets and parameter-level metadata.
+  access_method: Search UI at https://www.pangaea.de/?q=soil+moisture ; machine access via the OAI-PMH
+    provider at https://ws.pangaea.de/oai/provider and the `pangaeapy` python package, which pulls a dataset
+    into a pandas DataFrame from its DOI.
+  base_url: https://www.pangaea.de
+  auth: None for open datasets
+  confidence: recalled
+  priority: 2
+  sensor_type: various, usually documented per column
+  depths_cm: dataset dependent, usually given explicitly in the parameter name
+  in_ismn: 'no'
+  spatial_coverage: global, marine-heavy
+  temporal_coverage: varies
+  temporal_resolution: varies
+  n_stations_or_size: '>400,000 datasets overall; soil moisture is a small subset'
+  file_formats:
+  - tab-delimited text with a structured metadata header
+  - zip for collections
+  key_variables:
+  - depth-resolved soil water content
+  - soil temperature
+  - site coordinates
+  licence: Mostly CC-BY 4.0, a few restricted
+  irrigated_relevance: Limited; mainly permafrost, peatland and natural-ecosystem soil moisture rather
+    than irrigated agriculture.
+  gotchas: Parameter naming is highly standardised but column names are verbose and unit-suffixed, so
+    parsing needs the header. Many soil moisture records are short campaign datasets rather than long
+    station series.
+- name: SNOTEL (Snow Telemetry) soil moisture
+  short_id: snotel
+  category: in_situ_network
+  description: USDA-NRCS mountain snowpack network whose modern sites also carry shallow soil moisture
+    and temperature probes.
+  access_method: AWDB REST API or NWCC Report Generator CSV; network code SNTL (and SNTLT for the lite/telemetry
+    sites).
+  base_url: https://www.nrcs.usda.gov/wps/portal/wcc/home/
+  auth: none
+  confidence: recalled
+  priority: 2
+  sensor_type: FDR/impedance (Stevens Hydra Probe)
+  depths_cm: 5, 20, 51 (2, 8, 20 inches)
+  n_stations_or_size: ~900 SNOTEL sites total; roughly 400-450 with soil moisture
+  spatial_coverage: 13 western states plus Alaska
+  temporal_coverage: soil sensors added ~2005 onward; SWE record back to 1978
+  temporal_resolution: hourly and daily
+  key_variables:
+  - SMS soil moisture %
+  - STO soil temperature
+  - SWE
+  - snow depth
+  - precipitation
+  - air temperature
+  file_formats:
+  - CSV
+  - JSON
+  licence: US Government public domain
+  in_ismn: 'yes'
+  irrigated_relevance: 'None: sites are high-elevation forest/alpine headwater clearings, so SNOTEL is
+    useful only as an unirrigated mountain reference, not for irrigated cropland.'
+  gotchas: Frozen-soil periods produce spurious near-zero VWC; many soil sensors are in coarse, rocky
+    soils with poor factory-calibration validity.
+  irrigated_stations: 'no'
+- name: South Asian national agromet soil moisture (IMD/ICAR/IITM, PMD/PCRWR, BMD/BARC)
+  short_id: south_asia_agromet
+  category: in_situ_network
+  description: Operational, largely gravimetric soil moisture observations run by national meteorological
+    and agricultural agencies in India, Pakistan and Bangladesh.
+  access_method: Formal data request or paid order — IMD Pune data supply portal, ICAR-CRIDA/AICRPAM agromet
+    outlets, PMD and PCRWR by request; almost nothing is bulk-downloadable.
+  base_url: https://dsp.imdpune.gov.in
+  auth: paid / institutional request (IMD); MoU or direct contact (PMD, PCRWR, BMD, BARC)
+  confidence: recalled
+  priority: 2
+  sensor_type: gravimetric, with a growing minority of FDR/capacitance automatic sensors
+  depths_cm: typically 0-15/0-20 then 15 or 20 cm increments to 100
+  spatial_coverage: India (IMD agromet observatories plus ICAR AICRPAM centres), Pakistan (PMD agromet,
+    PCRWR), Bangladesh (BMD, BARC, BRRI)
+  temporal_coverage: 1970s/1980s-present
+  temporal_resolution: weekly or 10-daily
+  key_variables:
+  - gravimetric soil moisture
+  - soil temperature
+  - crop phenology
+  - rainfall
+  file_formats:
+  - csv
+  - pdf/tabular bulletins
+  licence: restricted; redistribution not permitted
+  n_stations_or_size: India ~200+ agromet observatories; Pakistan and Bangladesh a few tens each
+  in_ismn: 'no'
+  irrigated_relevance: Covers Indian and Pakistani Punjab, Haryana and the Indus canal command — canal
+    plus tube-well irrigated rice-wheat, i.e. the densest irrigation on the planet — and Bangladesh's
+    boro rice areas with near-total dry-season irrigation.
+  gotchas: Access is the main obstacle and machine-readable archives are rare; weekly gravimetric sampling
+    is too coarse to resolve individual irrigation events.
+  irrigated_stations: unknown
+- name: Southeast US university ag-weather networks (Kentucky Mesonet, Georgia AEMN, Florida FAWN, Alabama
+    Mesonet)
+  short_id: southeast_ag_networks
+  category: in_situ_network
+  description: 'Four southeastern state networks with soil measurements: the Kentucky Mesonet (the strongest
+    soil-moisture program of the four), UGA''s Georgia Automated Environmental Monitoring Network, the
+    Florida Automated Weather Network, and the Alabama Mesonet/AWIS network.'
+  access_method: Kentucky Mesonet portal at kymesonet.org; Georgia AEMN at weather.uga.edu; FAWN at fawn.ifas.ufl.edu
+    with a report/CSV builder; Alabama via AWIS and Auburn.
+  base_url: https://www.kymesonet.org/
+  auth: 'Kentucky: free registration for bulk data. Georgia and Florida: open. Alabama: partly subscription
+    (AWIS).'
+  confidence: recalled
+  priority: 2
+  depths_cm: 'Kentucky: 5, 10, 20, 50, 100. Georgia AEMN: soil temperature at 5 and 10 under grass and
+    bare soil, soil moisture at a subset. FAWN: soil temperature at 10'
+  sensor_type: Campbell CS655 (Kentucky); capacitance and thermistor sensors (Georgia, Florida, Alabama)
+  spatial_coverage: Kentucky (~75 stations), Georgia (~85), Florida (~40), Alabama (~20+)
+  temporal_coverage: Kentucky 2007- (soil moisture from ~2018); Georgia 1991-; FAWN 1997-
+  temporal_resolution: 5-min to hourly, daily summaries
+  key_variables:
+  - volumetric_water_content
+  - soil_temperature
+  - precipitation
+  - air_temperature
+  - relative_humidity
+  - wind
+  - solar_radiation
+  - reference_et
+  file_formats:
+  - CSV
+  - JSON
+  in_ismn: unknown
+  licence: Mostly open with attribution; AWIS commercial tier for Alabama
+  n_stations_or_size: ~220 stations combined; far fewer with true soil moisture
+  irrigated_relevance: Georgia AEMN is meaningfully irrigated — the Coastal Plain stations (Tifton, Camilla,
+    Attapulgus) serve the dense center-pivot peanut/cotton district over the Floridan aquifer, and UGA
+    runs irrigation-scheduling tools off it. FAWN was built for citrus and strawberry freeze protection,
+    so its sites are in irrigated groves and fields. Kentucky and Alabama are predominantly rainfed.
+  gotchas: Georgia, Florida and Alabama report soil temperature far more consistently than soil moisture
+    — do not assume VWC exists at a station just because it is listed. Kentucky's soil-moisture layer
+    starts around 2018, so the usable record is short.
+  irrigated_stations: unknown
+- name: TAHMO — Trans-African Hydro-Meteorological Observatory
+  short_id: tahmo
+  category: in_situ_network
+  description: Largest pan-African automated weather station network, with a subset of stations carrying
+    soil moisture sensors, concentrated in Kenya, Ghana, Uganda, Nigeria and Tanzania.
+  access_method: TAHMO data portal with per-station download and a documented REST API for registered
+    users.
+  base_url: https://tahmo.org
+  auth: free for African academic users under a data-sharing agreement; others paid/negotiated
+  confidence: recalled
+  priority: 2
+  sensor_type: capacitance (METER TEROS-12 / 5TM) at soil-equipped sites; core ATMOS-41 stations have
+    no soil probe
+  depths_cm: typically 5 and 20 at equipped sites
+  spatial_coverage: ~20 sub-Saharan African countries; densest in Kenya and Ghana
+  temporal_coverage: 2015-present
+  temporal_resolution: 5 min raw, hourly/daily aggregates
+  key_variables:
+  - soil moisture
+  - soil temperature
+  - rainfall
+  - air temperature/humidity
+  - radiation
+  file_formats:
+  - csv
+  - json (api)
+  licence: data-sharing agreement; free tier for research and education
+  n_stations_or_size: '>700 stations, of which a minority measure soil moisture'
+  in_ismn: 'no'
+  irrigated_relevance: Few stations are inside irrigation schemes, but some sit near Ghana's Vea and Bontanga
+    schemes and Kenya's Mwea rice scheme; complementary Ghanaian coverage exists through WASCAL's Vea
+    catchment instrumentation.
+  gotchas: Soil moisture is optional equipment, so confirm per-station sensor inventory before assuming
+    coverage; station downtime and vandalism produce long gaps.
+  irrigated_stations: unknown
+- name: NCEI USCRN soil moisture derived products (anomalies/percentiles)
+  short_id: uscrn_soil_products_ncei
+  category: in_situ_network
+  description: 'NCEI-produced value-added USCRN soil products: depth-averaged volumetric water content,
+    soil moisture anomalies and climatological percentiles.'
+  access_method: HTTPS directory download of the soilanom01 product plus the NCEI USCRN soil moisture
+    monitoring web pages/maps.
+  base_url: https://www.ncei.noaa.gov/pub/data/uscrn/products/soilanom01/
+  auth: none
+  confidence: recalled
+  priority: 2
+  sensor_type: FDR (derived from Stevens Hydra Probe II)
+  depths_cm: 5, 10, 20, 50, 100 plus 5-100 cm column average
+  n_stations_or_size: same ~114 CONUS USCRN stations
+  spatial_coverage: CONUS
+  temporal_coverage: ~2011-present (needs multi-year baseline for anomalies)
+  temporal_resolution: hourly/daily/monthly anomaly files
+  key_variables:
+  - soil_moisture_anomaly
+  - soil_moisture_percentile
+  - column_average_vwc
+  file_formats:
+  - ASCII text
+  licence: US Government public domain
+  in_ismn: no (the raw USCRN feed is what ISMN ingests)
+  irrigated_relevance: 'Same siting caveat as USCRN: anomalies represent natural-vegetation soil columns,
+    useful as an unirrigated control against irrigated pixels.'
+  gotchas: Short climatological baseline makes percentiles unstable at stations with sensor replacements
+    or gaps; product naming and directory layout have changed between NCEI site redesigns.
+  irrigated_stations: unknown
+- name: USDA Ag Data Commons
+  short_id: usda_ag_data_commons
+  category: in_situ_network
+  description: USDA National Agricultural Library repository for USDA-funded agricultural research data,
+    including ARS watershed and irrigation experiment datasets.
+  access_method: Now a Figshare-hosted institutional portal at https://agdatacommons.nal.usda.gov ; query
+    it through the Figshare API (POST https://api.figshare.com/v2/articles/search with {"search_for":"soil
+    moisture","item_type":3}) restricted to the USDA institution, rather than the old CKAN endpoint.
+  base_url: https://agdatacommons.nal.usda.gov
+  auth: None for public records; a Figshare token helps with rate limits
+  confidence: recalled
+  priority: 2
+  sensor_type: 'various: neutron probe, TDR, capacitance, gravimetric'
+  depths_cm: agronomic profiles, commonly 0-15, 15-30, 30-60, 60-90, 90-120
+  in_ismn: 'no'
+  spatial_coverage: United States
+  temporal_coverage: varies, some ARS series run decades
+  temporal_resolution: varies, often weekly to daily
+  n_stations_or_size: thousands of datasets
+  file_formats:
+  - CSV
+  - xlsx
+  - zip
+  key_variables:
+  - soil water content
+  - irrigation applied
+  - yield
+  - weather
+  - soil properties
+  licence: Mostly public domain / CC0 as US government work
+  irrigated_relevance: One of the richest sources of genuinely irrigated-field soil moisture with recorded
+    irrigation amounts, e.g. USDA-ARS Bushland TX lysimeter and Conservation Effects Assessment Project
+    watershed datasets.
+  gotchas: The legacy CKAN API at data.nal.usda.gov was retired in the 2023 migration to Figshare, so
+    old package_search code will fail. Neutron-probe profile data often come as scanned-era spreadsheets
+    with idiosyncratic column headers.
+  irrigated_stations: unknown
+- name: Valencia Anchor Station (VAS)
+  short_id: valencia_anchor_station
+  category: in_situ_network
+  description: University of Valencia SMOS/SMAP core validation site on the Utiel-Requena plateau, with
+    a soil moisture station cluster inside a ~50 km coarse-pixel footprint.
+  access_method: ISMN (network VAS); additional campaign data by request to the University of Valencia
+    Climatology from Satellites Group
+  base_url: https://ismn.earth/
+  auth: free ISMN registration
+  confidence: recalled
+  priority: 2
+  sensor_type: capacitance/impedance (Stevens Hydra Probe, ThetaProbe)
+  depths_cm: 0-5 primary; some profile measurements
+  spatial_coverage: Utiel-Requena, Valencia, eastern Spain
+  temporal_coverage: ~2008-present
+  temporal_resolution: hourly
+  n_stations_or_size: ~10-15 stations
+  key_variables:
+  - volumetric soil moisture
+  - soil temperature
+  - meteorology
+  file_formats:
+  - ISMN ASCII/CEOP
+  licence: ISMN terms
+  in_ismn: 'yes'
+  irrigated_relevance: Dominantly rainfed vineyard on a semi-arid plateau; some drip-irrigated vineyard
+    and orchard plots exist nearby, so it is a weak irrigation signal but a strong dry-end Mediterranean
+    reference.
+  gotchas: Designed for coarse-pixel (SMOS 40 km) validation, so the station density is low relative to
+    the field-scale heterogeneity.
+  irrigated_stations: unknown
+- name: West Texas Mesonet
+  short_id: west_texas_mesonet
+  category: in_situ_network
+  description: Texas Tech University National Wind Institute network across the Southern High Plains of
+    West Texas and eastern New Mexico with soil temperature and soil moisture profiles.
+  access_method: Web portal and bulk file requests to Texas Tech; no fully open public API.
+  base_url: https://www.depts.ttu.edu/nwi/research/facilities/wtm/
+  auth: Registration / data agreement for bulk historical data; some real-time products public
+  confidence: recalled
+  priority: 2
+  depths_cm: 5, 20, 60, 75 (soil temperature also at 5, 10, 20, 50)
+  sensor_type: Heat-dissipation / impedance soil water sensors (Oklahoma-Mesonet-style 229-L lineage at
+    most sites)
+  spatial_coverage: West Texas and eastern New Mexico, ~100-140 stations
+  temporal_coverage: 2000-
+  temporal_resolution: 5-min
+  key_variables:
+  - soil_water
+  - soil_temperature
+  - precipitation
+  - air_temperature
+  - relative_humidity
+  - wind
+  - solar_radiation
+  - barometric_pressure
+  file_formats:
+  - CSV
+  - text
+  in_ismn: unknown
+  licence: Data-use agreement with Texas Tech; redistribution restricted
+  n_stations_or_size: ~100-140 stations
+  irrigated_relevance: Yes — this is the densest network over the irrigated Southern High Plains cotton/corn
+    region (Lubbock, Plainview, Muleshoe, Seminole), where center-pivot irrigation dominates. Stations
+    are on grass plots but sit within heavily irrigated 1-10 km neighbourhoods, making them good for irrigation-signal
+    contrast studies.
+  gotchas: Bulk historical access requires contacting Texas Tech, which slows automated pipelines. Soil
+    water is reported in sensor-native units at many stations and needs conversion.
+  irrigated_stations: unknown
+- name: Zenodo
+  short_id: zenodo
+  category: repository
+  description: CERN-hosted general-purpose repository where most European project and paper-supplement
+    soil moisture datasets land.
+  access_method: 'REST search API: GET https://zenodo.org/api/records?q=%22soil+moisture%22&resource_type=dataset&size=100&page=N
+    ; each hit exposes files[].links.self for direct download.'
+  base_url: https://zenodo.org/api/records
+  auth: None for search/download; a free personal access token raises rate limits (roughly 60/min anonymous
+    vs 100/min authenticated)
+  confidence: recalled
+  priority: 2
+  sensor_type: various
+  depths_cm: dataset dependent
+  in_ismn: 'no'
+  spatial_coverage: global
+  temporal_coverage: n/a (archive)
+  temporal_resolution: n/a
+  n_stations_or_size: millions of records; thousands match soil moisture
+  file_formats:
+  - CSV
+  - NetCDF
+  - GeoTIFF
+  - zip
+  - xlsx
+  key_variables:
+  - whatever the depositor uploaded
+  licence: Per record, mostly CC-BY or CC0; check metadata.license.id
+  irrigated_relevance: Best single source for irrigation-specific field campaigns and for published irrigation-detection
+    benchmark datasets; search terms like "irrigation soil moisture in situ" work well.
+  gotchas: Full-text search is noisy and most hits are papers or software, so always filter resource_type=dataset
+    and expect to screen manually. Versioned DOIs mean the concept DOI and the version DOI differ; resolve
+    to the latest version explicitly.
 - name: ECIRA — European crop-specific irrigated area, 1 km annual 2010-2020
   short_id: ecira
   category: irrigation_extent
@@ -3276,6 +5361,578 @@ sources:
     physically consistent multi-depth prior that you can use as an input feature, and its known irrigation
     dry bias makes the model-minus-observation residual an irrigation-intensity proxy. GLDAS/NLDAS extend
     the record back before SMAP for older literature-derived observations.
+- name: Reynolds Creek Experimental Watershed (ARS Northwest Watershed Research Center)
+  short_id: ars_reynolds_creek
+  category: in_situ_network
+  description: Mountainous rangeland watershed in SW Idaho with multi-depth soil moisture, snow and meteorological
+    records, later also a Critical Zone Observatory.
+  access_method: ARS NWRC data server / Ag Data Commons dataset downloads; historical FTP archives of
+    station-year CSV.
+  base_url: https://data.nal.usda.gov/dataset/data-reynolds-creek-experimental-watershed
+  auth: none
+  confidence: recalled
+  priority: 3
+  sensor_type: FDR/impedance (Stevens Hydra Probe; earlier Vitel), with neutron probe access tubes historically
+  depths_cm: 5, 10, 20, 30, 50, 100 (varies by station)
+  n_stations_or_size: ~20-30 instrumented sites over a 239 km2 watershed
+  spatial_coverage: Reynolds Creek, Owyhee Mountains, Idaho
+  temporal_coverage: hydromet since 1960s; modern soil moisture ~1990s-present
+  temporal_resolution: 15-minute to hourly/daily
+  key_variables:
+  - volumetric soil moisture
+  - soil temperature
+  - SWE
+  - precipitation
+  - solar radiation
+  - soil carbon (CZO)
+  file_formats:
+  - CSV
+  - ASCII
+  licence: US Government public domain
+  in_ismn: partial
+  irrigated_relevance: No irrigated cropland; sagebrush steppe to subalpine, with an elevation gradient
+    useful for snow-driven soil moisture.
+  gotchas: Frozen/snow-covered periods dominate winter records; the CZO-era and ARS-era archives are separate
+    holdings with differing station naming.
+  irrigated_stations: 'no'
+- name: Walnut Gulch Experimental Watershed (ARS Southwest Watershed Research Center)
+  short_id: ars_walnut_gulch
+  category: in_situ_network
+  description: Long-term semiarid rangeland watershed in SE Arizona hosting the Kendall and Lucky Hills
+    SMAP core validation sites.
+  access_method: ARS Data Access Project (DAP) web query returning CSV, plus Ag Data Commons deposits
+    and the NSIDC SMAP in-situ collection.
+  base_url: https://www.tucson.ars.ag.gov/dap/
+  auth: none
+  confidence: recalled
+  priority: 3
+  sensor_type: FDR/impedance (Stevens Hydra Probe), with COSMOS/CRNS and TDR at Kendall/Lucky Hills
+  depths_cm: 5, 15, 30 (some profiles to 100)
+  n_stations_or_size: ~19 soil moisture/temperature profile sites within a 150 km2 watershed
+  spatial_coverage: Tombstone, Arizona
+  temporal_coverage: precipitation since 1953; soil moisture network ~2002-present
+  temporal_resolution: 20-minute to hourly
+  key_variables:
+  - volumetric soil moisture
+  - soil temperature
+  - precipitation
+  - runoff
+  - meteorology
+  file_formats:
+  - CSV
+  licence: US Government public domain
+  in_ismn: 'yes'
+  irrigated_relevance: 'None: pure semiarid shrub/grass rangeland, valuable as a dry-end endmember rather
+    than an irrigated case.'
+  gotchas: Extremely coarse, rocky soils bias factory Hydra Probe calibrations low; the DAP query interface
+    is session-based and awkward to script.
+  irrigated_stations: 'no'
+- name: Polish, Czech and Slovak national soil moisture networks
+  short_id: central_europe_national
+  category: in_situ_network
+  description: 'Central European operational and research networks: Polish IMGW-PIB, IUNG-Pulawy agrometeorological
+    and IGiK SMOS cal/val stations; Czech CzechGlobe/Intersucho drought monitoring network and CHMI; Slovak
+    SHMU agrometeorological stations.'
+  access_method: Intersucho (CZ) web portal with maps and station data plus an open drought-monitor download;
+    IMGW-PIB open data portal (danepubliczne.imgw.pl) for meteorology; IUNG and IGiK data by institutional
+    request
+  base_url: https://www.intersucho.cz/
+  auth: open for Intersucho/IMGW public data; request for research networks
+  confidence: recalled
+  priority: 3
+  sensor_type: FDR/capacitance and TDR, provider-dependent
+  depths_cm: commonly 10, 20/30, 50, 100 (Czech monitoring emphasises 0-40 and 40-100 layers)
+  spatial_coverage: Poland, Czechia, Slovakia
+  temporal_coverage: Intersucho from ~2014; national agromet longer
+  temporal_resolution: hourly to daily
+  n_stations_or_size: Czech automatic network of order 100 stations plus hundreds of reporters; Polish
+    agromet stations of order 100
+  key_variables:
+  - volumetric soil moisture
+  - soil water in % available water capacity
+  - soil temperature
+  - precipitation
+  file_formats:
+  - CSV
+  - web maps/GeoTIFF for drought products
+  licence: mixed; Intersucho products open with citation, station data often restricted
+  in_ismn: partial
+  irrigated_relevance: Irrigation is minor in the region (mainly Polish and Moravian vegetable and orchard
+    blocks), so these networks are best treated as rainfed continental references.
+  gotchas: Much of what these bodies publish is SoilClim-modelled soil moisture rather than sensor data;
+    language barriers and non-API portals complicate bulk access.
+  irrigated_stations: unknown
+- name: Chinese CRNS sites and networks
+  short_id: crns_china
+  category: in_situ_network
+  description: Cosmic-ray neutron sensors operated by Chinese Academy of Sciences groups, notably in the
+    Heihe River Basin (HiWATER) and on the Tibetan Plateau.
+  access_method: Mostly via the National Tibetan Plateau / Third Pole Environment Data Center (data.tpdc.ac.cn)
+    dataset records; some series only appear as supplements to journal papers.
+  base_url: https://data.tpdc.ac.cn
+  auth: Free registration on TPDC; some datasets require a request form
+  confidence: recalled
+  priority: 3
+  sensor_type: CRNS, alongside dense wireless soil moisture networks (FDR) and large-aperture scintillometers
+  depths_cm: CRNS effective ~10-50; point networks at 4, 10, 20, 40, 100
+  in_ismn: partial
+  spatial_coverage: Heihe River Basin (Zhangye oasis, Daman), Tibetan Plateau (Naqu, Maqu), some agricultural
+    stations in the North China Plain
+  temporal_coverage: ~2012-present, site dependent
+  temporal_resolution: hourly to daily
+  n_stations_or_size: order 10-20 CRNS, embedded in much larger point networks
+  file_formats:
+  - CSV/Excel
+  - NetCDF for some TPDC products
+  key_variables:
+  - neutron counts
+  - soil moisture
+  - soil temperature
+  - fluxes
+  licence: TPDC data policy, citation and sometimes co-authorship expected
+  irrigated_relevance: The Daman superstation in the Zhangye oasis sits in flood-irrigated maize inside
+    the Heihe irrigation district, which is one of the clearest CRNS-over-irrigation records available
+    anywhere.
+  gotchas: Metadata and site documentation are often Chinese-language only and access may require a justification
+    form. Irrigation events cause abrupt footprint-scale wetting that violates the uniform-profile assumption
+    behind the standard N0 conversion.
+  irrigated_stations: 'yes'
+- name: Dryad
+  short_id: dryad
+  category: repository
+  description: Curated generalist repository tied to journal publication, with everything released under
+    CC0.
+  access_method: GET https://datadryad.org/api/v2/search?q=soil%20moisture&per_page=100 ; then /api/v2/datasets/{encoded-doi}/download
+    for the file bundle.
+  base_url: https://datadryad.org/api/v2
+  auth: None for search and download; OAuth only for deposit
+  confidence: recalled
+  priority: 3
+  sensor_type: various
+  depths_cm: dataset dependent
+  in_ismn: 'no'
+  spatial_coverage: global
+  temporal_coverage: varies
+  temporal_resolution: varies
+  n_stations_or_size: ~60,000+ datasets
+  file_formats:
+  - CSV
+  - xlsx
+  - zip
+  - R data
+  key_variables:
+  - study-specific soil moisture measurements
+  licence: CC0 for all data files, which makes reuse legally simple
+  irrigated_relevance: Ecology- and agronomy-heavy, so useful for irrigation-treatment plot experiments,
+    but datasets are small and plot-scale rather than network time series.
+  gotchas: DOIs must be URL-encoded in the API path. Files are frequently undocumented spreadsheets with
+    no units, so expect manual curation.
+- name: 'Federated environmental repositories and registries: DataONE, EDI, ESS-DIVE, re3data, WDCC'
+  short_id: federated_env_repos
+  category: in_situ_network
+  description: Network-level search layers and domain archives that surface long-term ecological, DOE
+    terrestrial and climate-model soil moisture holdings.
+  access_method: 'DataONE Solr: https://cn.dataone.org/cn/v2/query/solr/?q=abstract:%22soil+moisture%22&wt=json
+    . EDI PASTA: https://pasta.lternet.edu/package/search/eml?q=soil+moisture&fl=packageid,title,doi .
+    ESS-DIVE: https://api.ess-dive.lbl.gov/packages?text=soil+moisture (JWT from an ESS-DIVE account).
+    re3data: https://www.re3data.org/api/v1/repositories?query=soil . WDCC/CERA: https://www.wdc-climate.de
+    search UI.'
+  base_url: https://cn.dataone.org/cn/v2/query/solr/
+  auth: DataONE, EDI and re3data are open; ESS-DIVE needs a free JWT token; WDCC needs registration for
+    most downloads
+  confidence: recalled
+  priority: 3
+  sensor_type: various
+  depths_cm: dataset dependent; LTER sites often 0-10, 10-30, 30-60
+  in_ismn: 'no'
+  spatial_coverage: global; EDI is US LTER-centred, ESS-DIVE is DOE sites, WDCC is global model output
+  temporal_coverage: EDI/LTER series run 20-40 years; WDCC covers CMIP archives
+  temporal_resolution: hourly to monthly
+  n_stations_or_size: DataONE indexes >1M objects across member nodes including EDI and KNB
+  file_formats:
+  - CSV with EML metadata
+  - NetCDF (WDCC, CMIP)
+  - zip
+  key_variables:
+  - soil water content
+  - soil temperature
+  - site and plot metadata
+  - modelled soil moisture (WDCC)
+  licence: CC0/CC-BY for EDI and ESS-DIVE; WDCC has CMIP terms of use
+  irrigated_relevance: EDI holds agricultural LTER sites (e.g. Kellogg Biological Station, Jornada, Konza)
+    with some irrigated treatments; WDCC is model output and only relevant if you need irrigation-enabled
+    land-surface simulations.
+  gotchas: DataONE duplicates records from its member nodes, so deduplicate by DOI before counting. re3data
+    is only a registry of repositories, not of datasets, so use it to discover new sources rather than
+    to fetch data.
+  irrigated_stations: unknown
+- name: 'Generalist repositories: Figshare, Mendeley Data, OSF'
+  short_id: generalist_repos
+  category: in_situ_network
+  description: Three general-purpose deposit platforms that together hold a long tail of individual-study
+    soil moisture datasets.
+  access_method: 'Figshare: POST https://api.figshare.com/v2/articles/search with {"search_for":"soil
+    moisture","item_type":3}. Mendeley Data: https://data.mendeley.com search UI, Elsevier Data Search
+    API for programmatic access. OSF: GET https://api.osf.io/v2/nodes/?filter[tags]=soil%20moisture and
+    /v2/files/ for downloads.'
+  base_url: https://api.figshare.com/v2
+  auth: All three allow anonymous search; free tokens/keys raise limits (Elsevier requires an API key)
+  confidence: recalled
+  priority: 3
+  sensor_type: various
+  depths_cm: dataset dependent
+  in_ismn: 'no'
+  spatial_coverage: global
+  temporal_coverage: varies
+  temporal_resolution: varies
+  n_stations_or_size: millions of items combined, small soil moisture subset
+  file_formats:
+  - CSV
+  - xlsx
+  - zip
+  - NetCDF
+  key_variables:
+  - study-specific
+  licence: Per item, CC-BY or CC0 mostly
+  irrigated_relevance: Useful for one-off irrigation trial datasets and for supplementary data behind
+    irrigation-mapping papers; coverage is opportunistic, not systematic.
+  gotchas: Figshare item_type=3 is the dataset filter and is essential or you drown in figures and posters.
+    OSF projects are often mostly empty wrappers around a preprint, so check for actual files before downloading.
+  irrigated_stations: unknown
+- name: HydroShare (CUAHSI)
+  short_id: hydroshare
+  category: repository
+  description: CUAHSI's repository for hydrologic data, models and notebooks, with a resource-oriented
+    REST API.
+  access_method: GET https://www.hydroshare.org/hsapi/resource/?full_text_search=soil+moisture ; per-resource
+    file listing and bag download under /hsapi/resource/{id}/ ; the `hsclient` python package wraps this.
+  base_url: https://www.hydroshare.org/hsapi
+  auth: Free account; basic auth or OAuth2 for the API, public resources readable anonymously
+  confidence: recalled
+  priority: 3
+  sensor_type: various
+  depths_cm: dataset dependent
+  in_ismn: 'no'
+  spatial_coverage: global, US-heavy
+  temporal_coverage: varies
+  temporal_resolution: varies
+  n_stations_or_size: tens of thousands of resources
+  file_formats:
+  - CSV
+  - ODM2/SQLite time series
+  - NetCDF
+  - GeoTIFF
+  - BagIt zip
+  key_variables:
+  - soil moisture time series
+  - watershed model inputs
+  licence: Per resource, commonly CC-BY
+  irrigated_relevance: Holds US watershed and irrigation-district studies plus ODM2 time-series collections
+    from university experimental farms; quality is uneven.
+  gotchas: Many resources are private or model code rather than data, and full_text_search hits metadata
+    only. ODM2 SQLite time-series resources need the ODM2 schema to extract values.
+- name: Michigan Enviroweather and Missouri Mesonet
+  short_id: michigan_missouri_ag_networks
+  category: in_situ_network
+  description: Two Midwest university extension ag-weather networks — MSU Enviroweather and the University
+    of Missouri Commercial Agriculture Weather Station Network — that run pest/irrigation models and report
+    soil conditions at a subset of stations.
+  access_method: Enviroweather web portal (enviroweather.msu.edu) and MU AgEBB weather pages (agebb.missouri.edu/weather/stations/);
+    mostly interactive, limited bulk endpoints.
+  base_url: https://enviroweather.msu.edu/
+  auth: Open; bulk historical by request
+  confidence: recalled
+  priority: 3
+  depths_cm: 'Missouri: soil temperature at ~5, 10, 20, 50, 100 (2/4/8/20/40 in). Michigan: soil moisture/temperature
+    at ~10 and 25 at instrumented sites'
+  sensor_type: Capacitance and impedance probes; model varies by station and install year
+  spatial_coverage: Michigan (~100 Enviroweather stations) and Missouri (~40 stations)
+  temporal_coverage: Enviroweather ~1996-; Missouri Mesonet ~1991-
+  temporal_resolution: Hourly and daily
+  key_variables:
+  - soil_temperature
+  - volumetric_water_content
+  - precipitation
+  - air_temperature
+  - relative_humidity
+  - leaf_wetness
+  - reference_et
+  file_formats:
+  - CSV
+  in_ismn: 'no'
+  licence: Open for non-commercial use with attribution
+  n_stations_or_size: ~140 stations combined
+  irrigated_relevance: Michigan is genuinely relevant — Enviroweather stations in the sandy Montcalm potato
+    district and southwest Michigan serve pivot irrigators, and the network publishes irrigation-scheduling
+    tools. Missouri's Bootheel stations sit in the irrigated Mississippi alluvial plain.
+  gotchas: Soil moisture is secondary to pest/disease modelling in both networks, so profiles are shallow
+    and coverage is inconsistent. Neither offers a clean bulk API — expect scraping or an email request.
+  irrigated_stations: unknown
+- name: National Soil Moisture Network / National Coordinated Soil Moisture Monitoring Network
+  short_id: nsmn_ncsmmn
+  category: in_situ_network
+  description: Federal-academic coordination effort and map portal that aggregates SCAN, SNOTEL, USCRN,
+    state mesonets and other in-situ soil moisture into a common view.
+  access_method: Web map viewer and documentation pages; NIDIS/drought.gov hosts the coordinated-network
+    program materials and the soil moisture data-sharing standards.
+  base_url: http://nationalsoilmoisture.com/
+  auth: none
+  confidence: recalled
+  priority: 3
+  sensor_type: heterogeneous (aggregates FDR, TDR, CRNS across member networks)
+  depths_cm: member-dependent; typically 5, 10, 20, 50, 100
+  n_stations_or_size: aggregates on the order of 2,000-3,000 US stations across ~30 networks
+  spatial_coverage: CONUS
+  temporal_coverage: varies by member network
+  temporal_resolution: hourly to daily
+  key_variables:
+  - volumetric soil moisture
+  - soil moisture percentile
+  - network metadata
+  file_formats:
+  - web map/GeoJSON tiles
+  - links out to member network files
+  licence: mixed; follow each contributing network's terms
+  in_ismn: partial
+  irrigated_relevance: 'Its value is discovery: it is the fastest way to locate the small set of stations,
+    especially state mesonet and SCAN sites, that fall on irrigated fields.'
+  gotchas: Primarily a viewer rather than a stable bulk API, and the prototype portal has had long outages;
+    NCSMMN is the governance/standards effort, not a data server.
+  irrigated_stations: 'yes'
+- name: SASSCAL WeatherNet and ARC South Africa automatic weather stations
+  short_id: sasscal_arc_southern_africa
+  category: in_situ_network
+  description: Southern African station networks — SASSCAL's open weather net across Angola, Botswana,
+    Namibia, South Africa and Zambia, plus the Agricultural Research Council's national South African
+    AWS network.
+  access_method: SASSCAL WeatherNet web portal with per-station CSV export; ARC data by request/purchase
+    from ARC-ISCW.
+  base_url: https://www.sasscalweathernet.org
+  auth: free (SASSCAL); paid or institutional request (ARC)
+  confidence: recalled
+  priority: 3
+  sensor_type: capacitance/FDR soil moisture at equipped stations; many stations are weather-only
+  depths_cm: typically 5, 20, 50 or 10, 30, 60 at equipped sites
+  spatial_coverage: Angola, Botswana, Namibia, Zambia, South Africa (SASSCAL); nationwide South Africa
+    (ARC)
+  temporal_coverage: ~2013-present (SASSCAL); 1990s-present (ARC)
+  temporal_resolution: hourly / daily
+  key_variables:
+  - soil moisture
+  - soil temperature
+  - rainfall
+  - standard meteorology
+  file_formats:
+  - csv
+  licence: free with attribution (SASSCAL); restricted/commercial (ARC)
+  n_stations_or_size: ~150 SASSCAL stations; several hundred ARC AWS
+  in_ismn: 'no'
+  irrigated_relevance: Sparse irrigated coverage; the nearest relevance is ARC stations in the Vaalharts
+    and Free State irrigation schemes, and none report irrigation events.
+  gotchas: Soil moisture is only at a subset of stations and record continuity is poor; ARC's archive
+    is not openly downloadable and pricing applies to bulk requests.
+  irrigated_stations: 'no'
+- name: SoilTemp
+  short_id: soiltemp
+  category: in_situ_network
+  description: Global crowd-sourced database of below-canopy microclimate loggers, very densely sampled
+    in Europe, whose TOMST TMS-4 loggers also record a soil moisture proxy.
+  access_method: Data request/contribution agreement via the SoilTemp project; curated releases and derived
+    products (e.g. SoilTemp-derived microclimate grids) published separately
+  base_url: https://www.soiltempproject.com/
+  auth: data-sharing agreement with contributors; co-authorship expectations
+  confidence: recalled
+  priority: 3
+  sensor_type: TDT-style TMS-4 moisture counts (uncalibrated), plus thermistors
+  depths_cm: TMS-4 moisture integrates roughly 0-15; temperatures at -6, +2, +15
+  spatial_coverage: Global, with dense European coverage
+  temporal_coverage: ~2018-present, plus contributed historical series
+  temporal_resolution: 15 min typical
+  n_stations_or_size: '>10,000 loggers contributed'
+  key_variables:
+  - soil temperature
+  - microclimate air temperature
+  - soil moisture proxy (TMS count)
+  file_formats:
+  - CSV
+  licence: contributor-dependent, embargoed subsets
+  in_ismn: 'no'
+  irrigated_relevance: Overwhelmingly forest, grassland and natural vegetation plots; essentially no irrigated
+    cropland coverage.
+  gotchas: The TMS-4 raw moisture count needs a soil-texture-specific calibration to become VWC, so it
+    is not plug-in comparable with FDR/TDR networks.
+  irrigated_stations: 'no'
+- name: SwissSMEX / SwissSMEX-Crop
+  short_id: swisssmex
+  category: in_situ_network
+  description: Swiss Soil Moisture Experiment, an ETH Zurich / MeteoSwiss / Agroscope network of profile
+    soil moisture measurements at grassland, cropland and forest sites across Switzerland.
+  access_method: MeteoSwiss IDAweb for the operational station subset (free for research, registration);
+    ISMN for the SwissSMEX series; remaining data by request to ETH Zurich land-climate group
+  base_url: https://gate.meteoswiss.ch/idaweb
+  auth: IDAweb free research account; ISMN free registration
+  confidence: recalled
+  priority: 3
+  sensor_type: TDR and FDR/capacitance profile probes (site-dependent)
+  depths_cm: profiles roughly 5, 10, 20, 40, 50, 80, 120
+  spatial_coverage: Switzerland, ~19 sites spanning altitude and land-use gradients
+  temporal_coverage: 2008-present
+  temporal_resolution: 10 min to hourly
+  n_stations_or_size: ~19 sites (SwissSMEX) plus SwissSMEX-Crop agricultural sites
+  key_variables:
+  - volumetric soil moisture profile
+  - soil temperature
+  - meteorology
+  - evapotranspiration
+  file_formats:
+  - ISMN ASCII/CEOP
+  - CSV from IDAweb
+  licence: MeteoSwiss research terms; ISMN terms
+  in_ismn: 'yes'
+  irrigated_relevance: SwissSMEX-Crop includes managed arable sites, and Swiss Rhone/Rhine valley agriculture
+    is partly irrigated, but the core network targets natural and rainfed grassland rather than irrigation.
+  gotchas: IDAweb ordering is a batch email workflow rather than an API, which makes automated refresh
+    painful.
+  irrigated_stations: unknown
+- name: German CRNS network (TERENO observatories and DFG Cosmic Sense)
+  short_id: tereno_cosmic_sense_de
+  category: in_situ_network
+  description: German CRNS stations operated within the TERENO observatories (Rur/Eifel-Lower Rhine, Bode/Harz,
+    pre-Alpine) and the DFG research unit Cosmic Sense (FOR 2694).
+  access_method: TERENO/TEODOOR data portal for the observatory time series; Cosmic Sense campaign datasets
+    (rover surveys, sensor clusters) published individually on Zenodo and GFZ Data Services with DOIs.
+  base_url: https://www.tereno.net
+  auth: Free registration for TERENO portal data; Zenodo/GFZ deposits are open
+  confidence: recalled
+  priority: 3
+  sensor_type: CRNS (stationary and mobile rover), plus dense TDR/FDR profile clusters
+  depths_cm: CRNS effective ~10-70; co-located TDR at 5, 20, 50
+  in_ismn: partial
+  spatial_coverage: Germany (Rur catchment incl. Selhausen and Wuestebach, Bode, pre-Alpine Fendt/Rottenbuch)
+  temporal_coverage: ~2011-present; Cosmic Sense campaigns ~2019-2023
+  temporal_resolution: hourly to sub-hourly
+  n_stations_or_size: tens of stationary probes plus campaign rover transects
+  file_formats:
+  - CSV/ASCII
+  - NetCDF for some TERENO products
+  key_variables:
+  - neutron counts
+  - volumetric soil moisture
+  - meteorology
+  - rover GPS tracks
+  licence: CC-BY for most Zenodo/GFZ deposits; TERENO portal has its own terms
+  irrigated_relevance: Selhausen and other Rur cropland sites are largely rainfed; the value here is the
+    exceptionally dense co-located validation data for CRNS N0 and footprint work rather than irrigation
+    itself.
+  gotchas: Data are fragmented across a portal plus many per-campaign DOIs, so harvesting requires per-dataset
+    handling. Rover data need road/vehicle shielding corrections in addition to the standard pressure,
+    humidity and incoming-neutron corrections.
+  irrigated_stations: unknown
+- name: TERN / OzFlux soil moisture profiles (with BoM Australian Water Outlook context)
+  short_id: tern_ozflux_au
+  category: in_situ_network
+  description: Soil moisture profiles recorded at Australian TERN ecosystem and OzFlux eddy-covariance
+    tower sites, the main nationally curated in-situ soil moisture outside OzNet.
+  access_method: TERN Data Discovery portal and OzFlux THREDDS/NetCDF downloads; BoM publishes only modelled
+    (AWRA-L) soil moisture, not a national in-situ network.
+  base_url: https://data.tern.org.au
+  auth: free (AAF/TERN login for some collections)
+  confidence: recalled
+  priority: 3
+  sensor_type: impedance/TDR (CS615/CS616, CS650) and capacitance profiles
+  depths_cm: typically 5, 10, 20, 30, 50, 100 (site-dependent)
+  spatial_coverage: ~30 flux/ecosystem sites across all Australian biomes (Calperum, Howard Springs, Daly,
+    Great Western Woodlands, Yanco, Cumberland Plain)
+  temporal_coverage: 2001-present (site-dependent)
+  temporal_resolution: 30 min
+  key_variables:
+  - soil moisture
+  - soil heat flux
+  - soil temperature
+  - ET/latent heat
+  file_formats:
+  - netcdf
+  - csv
+  licence: CC-BY 4.0
+  n_stations_or_size: ~30 towers plus TERN SuperSites
+  in_ismn: 'no'
+  irrigated_relevance: Mostly natural vegetation; irrigated relevance is indirect, via the Yanco-area
+    sites and cropland towers in the Murray-Darling Basin.
+  gotchas: Soil moisture is an ancillary variable at flux sites — calibration quality and depth sets vary
+    by site, and gaps are common. Do not mistake BoM's Australian Water Outlook (awo.bom.gov.au) product
+    for in-situ data; it is AWRA-L model output.
+  irrigated_stations: 'no'
+- name: UK Environment Agency Hydrology API and Met Office MIDAS
+  short_id: uk_ea_midas
+  category: in_situ_network
+  description: 'Non-COSMOS UK routes to soil-related hydrometeorology: the Environment Agency open Hydrology
+    API (rainfall, level, groundwater, limited soil data) and Met Office MIDAS Open station records with
+    soil temperature and moisture-deficit products.'
+  access_method: EA Hydrology REST/Linked-Data API (open, JSON/CSV, no key); MIDAS Open via CEDA archive
+    with a free CEDA account; MORECS/MOSES soil moisture deficit is licensed
+  base_url: https://environment.data.gov.uk/hydrology/
+  auth: 'EA: none (OGL). CEDA/MIDAS: free account. MORECS: commercial licence.'
+  confidence: recalled
+  priority: 3
+  sensor_type: mixed; soil temperature thermistors, model-derived soil moisture deficit
+  depths_cm: soil temperature 10, 30, 100; SMD is a depth-integrated model quantity
+  spatial_coverage: England (EA) and UK (MIDAS)
+  temporal_coverage: long records, decades
+  temporal_resolution: 15 min to daily
+  n_stations_or_size: thousands of hydrometric stations; hundreds with soil observations
+  key_variables:
+  - rainfall
+  - river level/flow
+  - groundwater level
+  - soil temperature
+  - soil moisture deficit
+  file_formats:
+  - JSON
+  - CSV
+  licence: Open Government Licence (EA); CEDA terms; MORECS licensed
+  in_ismn: 'no'
+  irrigated_relevance: Limited direct value for irrigation - true in-situ soil moisture is sparse outside
+    COSMOS-UK, though East Anglian irrigated horticulture is covered by rainfall and groundwater abstraction
+    data.
+  gotchas: Genuine measured volumetric soil moisture is scarce in both sources; most UK soil moisture
+    is MORECS/MOSES model output, not observation.
+  irrigated_stations: unknown
+- name: USGS soil moisture observations (NWIS / Water Data for the Nation)
+  short_id: usgs_nwis_soil_moisture
+  category: in_situ_network
+  description: Soil moisture sensors at a subset of USGS monitoring and Next Generation Water Observing
+    System sites, served as ordinary NWIS time series parameters.
+  access_method: NWIS water services REST (parameterCd for soil moisture content, e.g. 72180) and the
+    newer OGC API at api.waterdata.usgs.gov.
+  base_url: https://waterservices.usgs.gov/nwis/iv/
+  auth: none
+  confidence: recalled
+  priority: 3
+  sensor_type: heterogeneous (capacitance/FDR, some TDR; also CRNS at selected NGWOS basins)
+  depths_cm: site-specific, commonly 5, 10, 20, 50, 100
+  n_stations_or_size: low hundreds of sites at most; far sparser than SCAN
+  spatial_coverage: scattered CONUS, concentrated in NGWOS basins (Delaware River, Upper Colorado, Illinois
+    River) and state cooperator networks (e.g. NV, AZ, NE)
+  temporal_coverage: mostly 2010s-present
+  temporal_resolution: 15-minute instantaneous and daily values
+  key_variables:
+  - soil moisture content
+  - soil temperature
+  - groundwater level
+  - streamflow
+  - precipitation
+  file_formats:
+  - RDB
+  - WaterML
+  - JSON
+  - CSV
+  licence: US Government public domain
+  in_ismn: unknown
+  irrigated_relevance: Some cooperator sites in Nebraska and the desert Southwest are in or near irrigated
+    agricultural areas, but soil moisture coverage is opportunistic and not designed for cropland monitoring.
+  gotchas: Soil moisture is a rare, non-standard parameter in NWIS, so you must first query the parameter-code
+    site inventory; units and depth encoding vary by cooperator.
+  irrigated_stations: 'yes'
 - name: GFSAD1000 V1 — Global Cropland Extent 1 km Multi-Study Crop Mask
   short_id: gfsad1000
   category: irrigation_extent

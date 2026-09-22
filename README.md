@@ -18,8 +18,9 @@ rather than as noise.
 
 | Stage | Module | Status |
 |---|---|---|
-| Source catalogue — 92 datasets, 93 studies | `smml.registry` | complete |
+| Source catalogue — 168 datasets, 93 studies | `smml.registry` | complete |
 | Harvest connectors — weather, soil, salinity | `smml.sources` | written, parser-tested, **not run against live APIs** |
+| ISMN bulk-download reader | `smml.sources.ismn` | complete |
 | Literature discovery — repositories, OpenAlex, Europe PMC | `smml.litmine.discover` | written, **not run against live APIs** |
 | Figure digitization — vector + raster | `smml.litmine.digitize` | complete and measured |
 | Database — star schema, idempotent Parquet + DuckDB | `smml.db` | complete |
@@ -79,6 +80,8 @@ smml tune --model lightgbm --trials 50    # hyperparameter search
 ## Run it on real data
 
 ```bash
+smml registry networks --irrigated          # the 21 networks with irrigated stations
+smml registry networks --rainfed            # 16 rainfed controls
 smml registry list --category soil_property --max-priority 1
 smml harvest soil    --sites sites.csv --source soilgrids_rest
 smml harvest weather --sites sites.csv --source nasa_power --start 2000-01-01
@@ -136,6 +139,26 @@ puts near-duplicate rows on both sides of the boundary. `smml evaluate
 
 ---
 
+## The irrigated-network shortlist
+
+Of 71 catalogued in-situ networks, these 21 are classified as having stations on
+irrigated cropland — the starting point for the harvest:
+
+`agweathernet_coagmet_intermountain` · `ameriflux` · `azmet` · `cimis` ·
+`cma_soil_moisture_cn` · `illinois_climate_network_warm` ·
+`mediterranean_irrigated` · `nebraska_nawmn_nrd` · `nrcs_awdb_rest_api` ·
+`oklahoma_mesonet` · `osr_maghreb_irrigated` · `scan` · `ars_micronet_ok` ·
+`cosmos_us` · `hobe` · `nebraska_mesonet` · `nrcs_report_generator` ·
+`nysm_deos` · `crns_china` · `nsmn_ncsmmn` · `usgs_nwis_soil_mois`
+
+Sixteen more are explicitly sited away from irrigation — SNOTEL, USCRN, NEON,
+TxSON, TERENO, SMOSMANIA among them. Those are not a lesser category: a model
+cannot learn what irrigation does without rainfed controls to contrast against.
+
+The remaining 34 are `unknown`, which is the honest answer rather than a guess.
+ISMN carries no irrigation attribute at all, which is why
+`smml.sources.ismn.flag_likely_irrigated` exists.
+
 ## Figure digitization
 
 A large share of irrigated-field soil moisture exists only as ink in a paper.
@@ -175,7 +198,7 @@ humid-climate test site scored 18 % precision. Use the confidence score.
 
 ```
 src/smml/
-  registry/     92 catalogued sources, 24 technique recipes, 93 studies (YAML)
+  registry/     168 catalogued sources, 24 technique recipes, 93 studies (YAML)
   sources/      harvest connectors (weather, soil + salinity)
   litmine/      literature discovery; figure digitization
   db/           star schema; idempotent Parquet store with DuckDB views
@@ -192,9 +215,9 @@ tests/          unit tests and API response fixtures
 ## Verification
 
 ```bash
-pytest tests/unit            # 197 fast tests
+pytest tests/unit            # 215 fast tests
 pytest tests/integration     # 14 end-to-end tests (~2 min)
-pytest                       # all 211, no network required
+pytest                       # all 229, no network required
 ```
 
 What is checked, and against what:
@@ -241,8 +264,12 @@ than trusting this README:
   smectitic and ~0.001 for kaolinitic.
 - `EALSTMModel` is implemented and unit-tested but has not been benchmarked
   against the boosted trees at corpus scale.
-- The in-situ network catalogue is thinner than the soil, weather and irrigation
-  catalogues; that sweep had not returned when the registry was compiled.
+- Of the 71 catalogued in-situ networks, 21 are classified as having irrigated
+  stations and 16 as explicitly rainfed; **34 are `unknown`**. The classification
+  is derived from prose in each entry and is deliberately conservative — confirm
+  any of them against an irrigation extent map before treating it as fact.
+- 91 of the 168 source entries are marked `recalled` rather than `confirmed`.
+  Their endpoints came from model knowledge, not from a verified response.
 
 ## Licence
 

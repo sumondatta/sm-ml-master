@@ -49,10 +49,18 @@ def _setup_logging(verbose: bool) -> None:
     )
 
 
-def _print_frame(frame, title: str, max_rows: int = 40) -> None:
+def _print_frame(frame, title: str, max_rows: int = 40, wrap: bool = False) -> None:
+    """Render a frame as a table, one terminal row per record by default.
+
+    Folding long cells onto several lines makes a catalogue listing unreadable —
+    a twenty-row table becomes a hundred lines and the columns stop aligning by
+    eye. Values are truncated instead, and the full entry is one
+    `smml registry show <short_id>` away.
+    """
     table = Table(title=title, show_lines=False, header_style="bold")
     for column in frame.columns:
-        table.add_column(str(column), overflow="fold")
+        table.add_column(str(column), overflow="fold" if wrap else "ellipsis",
+                         no_wrap=not wrap)
     for _, row in frame.head(max_rows).iterrows():
         table.add_row(*[f"{v:.4f}" if isinstance(v, float) else str(v) for v in row])
     console.print(table)
@@ -93,8 +101,11 @@ def registry_list(
         console.print("[yellow]no sources match[/yellow]")
         raise typer.Exit()
     frame = pd.DataFrame(items)[
-        ["priority", "short_id", "name", "category", "access_method", "auth", "confidence"]
-    ].sort_values(["priority", "category", "short_id"])
+        ["priority", "short_id", "name", "category", "confidence"]
+    ].sort_values(["priority", "category", "short_id"]).rename(
+        columns={"priority": "pri", "confidence": "conf"}
+    )
+    frame["name"] = frame["name"].str.slice(0, 56)
     _print_frame(frame, f"{len(frame)} sources", max_rows=200)
 
 
@@ -104,6 +115,31 @@ def registry_show(short_id: str) -> None:
     from .. import registry
 
     console.print_json(json.dumps(registry.source(short_id), indent=2, default=str))
+
+
+@registry_app.command("networks")
+def registry_networks(
+    irrigated: bool = typer.Option(False, help="Only networks with stations on irrigated cropland"),
+    rainfed: bool = typer.Option(False, help="Only networks explicitly sited away from irrigation"),
+) -> None:
+    """List in-situ soil moisture networks."""
+    import pandas as pd
+
+    from .. import registry
+
+    selector = True if irrigated else (False if rainfed else None)
+    items = registry.networks(irrigated=selector)
+    frame = pd.DataFrame(items)
+    columns = [c for c in ("priority", "short_id", "name", "in_ismn", "irrigated_stations")
+               if c in frame.columns]
+    # Sorted by priority, then the column is dropped: it renders as a squeezed
+    # sliver at terminal width and the ordering already carries it.
+    frame = frame[columns].sort_values(["priority", "short_id"]).drop(columns=["priority"])
+    frame = frame.rename(columns={"in_ismn": "ismn", "irrigated_stations": "irrig"})
+    # These fields are prose and destroy the table layout; the full entry is one
+    # `smml registry show <short_id>` away.
+    frame["name"] = frame["name"].str.slice(0, 52)
+    _print_frame(frame, f"{len(frame)} in-situ networks", max_rows=100)
 
 
 @registry_app.command("studies")

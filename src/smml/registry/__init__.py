@@ -80,6 +80,30 @@ def source(short_id: str) -> dict[str, Any]:
     raise KeyError(f"unknown source {short_id!r}")
 
 
+def networks(irrigated: bool | None = None, in_ismn: bool | None = None) -> list[dict[str, Any]]:
+    """In-situ soil moisture networks, optionally filtered by irrigation.
+
+    ``irrigated=True`` returns the networks known to have stations on irrigated
+    cropland — the ones this project is built around. ``irrigated=False`` returns
+    those explicitly sited away from irrigation, which are the rainfed controls a
+    model needs in order to learn what irrigation does.
+
+    The classification is derived from each entry's ``irrigated_relevance`` note
+    and is deliberately conservative: a network whose siting is not clearly
+    stated is left ``unknown`` rather than guessed at. Confirm any of them
+    against an irrigation extent map before treating the label as fact.
+    """
+    items = sources(category="in_situ_network")
+    if irrigated is True:
+        items = [s for s in items if s.get("irrigated_stations") == "yes"]
+    elif irrigated is False:
+        items = [s for s in items if s.get("irrigated_stations") == "no"]
+    if in_ismn is not None:
+        want = "yes" if in_ismn else "no"
+        items = [s for s in items if str(s.get("in_ismn", "")).lower().startswith(want)]
+    return items
+
+
 def techniques(max_priority: int | None = None) -> list[dict[str, Any]]:
     items = list(_load("techniques").get("techniques", []))
     if max_priority is not None:
@@ -128,4 +152,7 @@ def summary() -> dict[str, Any]:
         "n_studies": len(studies()),
         "n_studies_open_data": len(studies(with_open_data=True)),
         "n_studies_figure_only": len(studies(figure_only=True)),
+        "n_networks": len(networks()),
+        "n_networks_irrigated": len(networks(irrigated=True)),
+        "n_networks_rainfed_control": len(networks(irrigated=False)),
     }
