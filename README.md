@@ -28,6 +28,7 @@ rather than as noise.
 | Quality control + irrigation inference | `smml.qc` | complete and measured |
 | Irrigation label fusion — evidence to calibrated probability | `smml.irrigation` | complete |
 | Licence and TDM compliance gate | `smml.litmine.compliance` | complete (policy, not legal advice) |
+| Falsifiable success criteria | `smml.eval.targets` | complete |
 | Features, models, evaluation, tuning | `smml.features` `.models` `.eval` `.tune` | complete, run end to end |
 
 ### The one thing to know before running this
@@ -95,6 +96,42 @@ smml train --model lightgbm --split leave_site_out
 ```
 
 ---
+
+## What would count as success
+
+"Replace soil moisture sensors" is not falsifiable, and as written it is
+probably false — a model with nothing in the ground will not beat a
+well-calibrated TDR probe in a loam. The defensible claim is narrower, stronger,
+and sits exactly where your expertise does:
+
+> Replace **dielectric** sensors in the soils where dielectric sensors are
+> unreliable — high-activity clays and saline soils — using static soil
+> attributes, irrigation forcing, remote sensing, and a handful of gravimetric
+> calibration samples.
+
+`smml.eval.targets` encodes that as three products with separate thresholds,
+because a target written in a paragraph never gets checked:
+
+| product | question | criterion |
+|---|---|---|
+| **A** no site data | what is the climatology and event response of a field never instrumented? | leave-site-out ubRMSE ≤ 0.045, KGE ≥ 0.5, within-site r ≥ 0.5 |
+| **B** a few gravimetric samples | how much water is in *this* profile now? | **total RMSE ≤ 0.035 and \|bias\| ≤ 0.015 in clay ≥ 35 % or ECe ≥ 4 dS/m**, where a factory-calibrated probe achieves ≥ 0.05 |
+| **C** forecast | what will it be in three days? | ≥ 25 % better than persistence at day+3, ≥ 15 % at day+7 |
+
+Two things are built into this deliberately.
+
+**Product B is scored on the difficult soils only.** Good performance in loam
+must not be allowed to carry a failure in clay — the clay is the claim.
+
+**The headline is total RMSE against gravimetric truth, not ubRMSE.** A
+dielectric probe's error in clay and saline soil is predominantly bias, and
+ubRMSE removes bias. Comparing model ubRMSE against sensor total RMSE would
+flatter the model by exactly the quantity at issue.
+
+`evaluate_targets` also raises a **leakage warning** below 0.020 ubRMSE, which
+fires even when every threshold passes. Random k-fold on rows produces ubRMSE
+around 0.015–0.02 on data whose honest leave-site-out value is 0.04–0.06, so a
+suspiciously good score is the most reliable leak detector there is.
 
 ## The three findings that shaped the design
 
@@ -255,18 +292,20 @@ src/smml/
   qc/           quality control; irrigation inference
   features/     leakage-free feature construction
   models/       baselines, LightGBM, XGBoost, entity-aware LSTM
-  eval/         metrics, spatiotemporal splits, CV runner
+  eval/         metrics, spatiotemporal splits, CV runner, success criteria
   tune/         Optuna search, nested CV
+  irrigation/   evidence fusion into a calibrated irrigated/rainfed label
   cli/          command line interface
-tests/          unit tests and API response fixtures
+tests/          unit tests, integration tests, API response fixtures
+docs/research/  the research sweep's own output, preserved verbatim
 ```
 
 ## Verification
 
 ```bash
-pytest tests/unit            # 273 fast tests
+pytest tests/unit            # 289 fast tests
 pytest tests/integration     # 14 end-to-end tests (~2 min)
-pytest                       # all 287, no network required
+pytest                       # all 303, no network required
 ```
 
 What is checked, and against what:
