@@ -89,6 +89,15 @@ export SMML_DATA_ROOT=/mnt/big-disk/smml   # the corpus is expected to reach TB
 
 ## Run it end to end, with no network
 
+One command builds the database, trains, tunes, and writes every figure and
+table into `artifacts/`:
+
+```bash
+python scripts/run_full_pipeline.py      # ~40 min on four cores
+```
+
+Or stage by stage:
+
 ```bash
 smml simulate --n-sites 50 --years 4     # physics-based synthetic corpus
 smml qc                                   # quality control
@@ -97,6 +106,19 @@ smml compliance                           # what the sources permit
 smml evaluate --include-optimism          # models vs baselines, and split honesty
 smml tune --model lightgbm --trials 50    # hyperparameter search
 ```
+
+### What comes out
+
+`artifacts/` holds the database in three forms — partitioned Parquet for
+working, a single portable `soil_moisture.duckdb` file to hand to someone, and
+CSV for a spreadsheet — plus six figures and the result tables behind them. See
+[`artifacts/README.md`](artifacts/README.md).
+
+**The corpus those artifacts are built from is synthetic**, because this
+environment could reach no data host. They show the pipeline works and its
+diagnostics behave; they say nothing about accuracy on real soils. Every figure
+carries that notice in its corner. Point the same script at a harvested database
+by changing one path.
 
 ## Run it on real data
 

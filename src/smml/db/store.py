@@ -283,6 +283,59 @@ class Store:
         frame["mb"] = (frame["bytes"] / 1e6).round(2)
         return frame
 
+    def export_duckdb(self, path: Path | str, tables: list[str] | None = None) -> Path:
+        """Materialize the whole database into one portable ``.duckdb`` file.
+
+        The Parquet layout is the right storage for a harvest — partitioned,
+        appendable, idempotent — and the wrong thing to hand to a colleague, who
+        wants one file they can open. This writes real tables rather than views,
+        so the result is self-contained and needs neither this package nor the
+        original directory tree.
+        """
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if path.exists():
+            path.unlink()
+
+        con = duckdb.connect(str(path))
+        try:
+            written = []
+            for name in tables or TABLES:
+                if not self.exists(name):
+                    continue
+                source = self.table_path(name)
+                con.execute(
+                    f"CREATE TABLE {name} AS SELECT * FROM "
+                    f"read_parquet('{source}/**/*.parquet', hive_partitioning=true)"
+                )
+                written.append(name)
+            log.info("exported %s to %s", ", ".join(written), path)
+        finally:
+            con.close()
+        return path
+
+    def export_csv(self, directory: Path | str, tables: list[str] | None = None,
+                   max_rows: int | None = None) -> list[Path]:
+        """Write each table to CSV, for opening in a spreadsheet.
+
+        ``max_rows`` caps the observation table, which is the only one likely to
+        exceed what a spreadsheet will load; the full table stays in the Parquet
+        and DuckDB forms.
+        """
+        directory = Path(directory)
+        directory.mkdir(parents=True, exist_ok=True)
+        out = []
+        for name in tables or TABLES:
+            if not self.exists(name):
+                continue
+            frame = self.read(name)
+            if max_rows and len(frame) > max_rows:
+                frame = frame.head(max_rows)
+            target = directory / f"{name}.csv"
+            frame.to_csv(target, index=False)
+            out.append(target)
+        return out
+
     def write_manifest(self, name: str, payload: dict) -> Path:
         """Record what a harvest run did, for reproducibility."""
         manifest_dir = self.root / "_manifests"

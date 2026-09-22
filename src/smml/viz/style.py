@@ -1,0 +1,145 @@
+"""Chart styling: a validated palette and matplotlib defaults.
+
+The colour choices are not taste. The categorical slots below were checked with a
+colour-vision-deficiency validator: every pair that can appear together clears a
+CVD separation floor and a normal-vision floor against the chart surface. The
+ordering is the safety mechanism, so slots are assigned in order and never
+cycled.
+
+Two consequences shape every figure in this module. **Scatter and small-multiple
+forms cap at three series** — with all pairs simultaneously on screen, the fourth
+slot puts yellow beside orange and that pair fails the floor. Anything needing
+more dimensions is faceted instead of coloured. And the aqua slot sits below 3:1
+contrast on the light surface, so wherever it appears the figure carries direct
+labels or an accompanying table rather than relying on the colour alone.
+
+Depth is *ordered*, not categorical, so it uses a single-hue sequential ramp
+light-to-dark rather than a set of distinct hues. Using categorical colours for
+an ordered variable throws away the ordering the reader could otherwise see.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+#: Categorical slots, assigned in order, never cycled.
+SERIES = ("#2a78d6", "#eb6834", "#1baf7a", "#eda100",
+          "#e87ba4", "#008300", "#4a3aa7", "#e34948")
+
+#: Forms where every pair is on screen at once (scatter, small multiples) are
+#: limited to the first three slots, which validate all-pairs.
+SERIES_ALL_PAIRS_CAP = 3
+
+#: Single-hue ramp for ordered magnitude. Depth uses this.
+SEQUENTIAL_BLUE = ("#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5",
+                   "#256abf", "#184f95", "#0d366b")
+
+#: Two poles with a neutral midpoint, for signed quantities like residuals.
+DIVERGING = {"low": "#2a78d6", "mid": "#f0efec", "high": "#e34948"}
+
+INK = {
+    "surface": "#fcfcfb",
+    "page": "#f9f9f7",
+    "primary": "#0b0b0b",
+    "secondary": "#52514e",
+    "muted": "#898781",
+    "grid": "#e1e0d9",
+    "axis": "#c3c2b7",
+}
+
+MEASURED = SERIES[0]      # blue
+PREDICTED = SERIES[1]     # orange
+THIRD = SERIES[2]         # aqua — carries a contrast warning; always label it
+
+
+def depth_ramp(n: int) -> list[str]:
+    """``n`` distinct steps of the sequential ramp, shallow to deep.
+
+    Interpolates across the ramp rather than indexing into it, so any ``n``
+    yields ``n`` *ordered, distinct* colours. Picking by integer stride wrapped
+    around once ``n`` exceeded the number of named steps, which put the shallowest
+    and deepest layers in the same colour and threw away the ordering the ramp
+    exists to show.
+
+    Starts at the third named step rather than the first: the lightest steps are
+    for continuous fills where near-zero may recede into the surface, and a
+    discrete marked series has to stay visible against it (the ordinal rule —
+    no lighter than 2:1 against the light surface).
+    """
+    usable = SEQUENTIAL_BLUE[2:]
+    if n <= 0:
+        return []
+    if n == 1:
+        return [usable[len(usable) // 2]]
+
+    def to_rgb(value: str) -> tuple[float, float, float]:
+        value = value.lstrip("#")
+        return tuple(int(value[i:i + 2], 16) / 255 for i in (0, 2, 4))
+
+    anchors = [to_rgb(c) for c in usable]
+    out = []
+    for i in range(n):
+        position = i * (len(anchors) - 1) / (n - 1)
+        low = int(position)
+        high = min(low + 1, len(anchors) - 1)
+        weight = position - low
+        rgb = tuple(
+            anchors[low][channel] * (1 - weight) + anchors[high][channel] * weight
+            for channel in range(3)
+        )
+        out.append("#" + "".join(f"{int(round(c * 255)):02x}" for c in rgb))
+    return out
+
+
+def apply(matplotlib_module: Any = None) -> None:
+    """Set matplotlib defaults: recessive chrome, thin marks, readable type."""
+    import matplotlib as mpl
+
+    mpl.rcParams.update({
+        "figure.facecolor": INK["surface"],
+        "axes.facecolor": INK["surface"],
+        "savefig.facecolor": INK["surface"],
+        "axes.edgecolor": INK["axis"],
+        "axes.labelcolor": INK["secondary"],
+        "axes.titlecolor": INK["primary"],
+        "axes.linewidth": 0.8,
+        "axes.grid": True,
+        "axes.axisbelow": True,
+        "grid.color": INK["grid"],
+        "grid.linewidth": 0.6,
+        "xtick.color": INK["muted"],
+        "ytick.color": INK["muted"],
+        "xtick.labelcolor": INK["secondary"],
+        "ytick.labelcolor": INK["secondary"],
+        "xtick.major.width": 0.6,
+        "ytick.major.width": 0.6,
+        "text.color": INK["primary"],
+        "font.size": 9,
+        "axes.titlesize": 10.5,
+        "axes.labelsize": 9,
+        "legend.fontsize": 8.5,
+        "legend.frameon": False,
+        "lines.linewidth": 1.6,
+        "lines.markersize": 4,
+        "figure.dpi": 110,
+        "savefig.dpi": 300,
+        "savefig.bbox": "tight",
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+    })
+
+
+SYNTHETIC_NOTICE = (
+    "Synthetic corpus — generated by a physically-based water balance, not "
+    "measured in the field. Demonstrates the pipeline, not real-soil accuracy."
+)
+
+
+def stamp_provenance(fig: Any, text: str = SYNTHETIC_NOTICE) -> None:
+    """Write the data's provenance onto the figure itself.
+
+    A figure gets separated from its caption the moment someone drops it into a
+    slide. Where the numbers came from has to travel with the image.
+    """
+    fig.text(0.005, 0.005, text, fontsize=6.6, color=INK["muted"],
+             ha="left", va="bottom", style="italic")

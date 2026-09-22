@@ -28,8 +28,17 @@ data/literature/**
 *.pdf
 !docs/**/*.pdf
 
-# Model artifacts / studies
-artifacts/
+# Model artifacts / studies. The figures, result tables and the folder's own
+# README are small and are the deliverable, so they are kept; the database and
+# the Optuna studies are large and regenerable, so they are not.
+artifacts/**
+!artifacts/README.md
+!artifacts/figures/
+!artifacts/figures/*.png
+!artifacts/results/
+!artifacts/results/*.csv
+!artifacts/results/*.yaml
+!artifacts/results/*.json
 runs/
 mlruns/
 *.ckpt
