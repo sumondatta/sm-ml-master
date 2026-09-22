@@ -489,4 +489,4 @@ class EALSTMModel(SoilMoistureModel):
         raise ValueError("frame has no recognizable target column to shape the depth pivot")
 
     def get_params(self):
-        return {k: v for k, v in vars(self.config).items()}
+        return dict(vars(self.config).items())

@@ -586,7 +586,7 @@ def label_error_budget(labels: pd.DataFrame, truth: pd.Series | None = None) -> 
     whether it is right.
     """
     out = {
-        "n": int(len(labels)),
+        "n": len(labels),
         "share_irrigated": float((labels["irrigation_status"] == "irrigated").mean()),
         "share_rainfed": float((labels["irrigation_status"] == "rainfed").mean()),
         "share_uncertain": float((labels["irrigation_status"] == "uncertain").mean()),

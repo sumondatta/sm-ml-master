@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import Iterator
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -206,7 +205,7 @@ class OpenAlexClient:
                 params["api_key"] = self.api_key
             try:
                 payload = self.session.get_json(self.BASE_URL, params=params)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 errors.append(f"openalex: {type(exc).__name__}: {exc}")
                 break
             results = payload.get("results", [])
@@ -264,7 +263,7 @@ class EuropePMCClient:
             }
             try:
                 payload = self.session.get_json(self.BASE_URL, params=params)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 errors.append(f"europepmc: {type(exc).__name__}: {exc}")
                 break
             results = (payload.get("resultList") or {}).get("result", [])
@@ -340,7 +339,7 @@ class DataCiteClient:
             }
             try:
                 payload = self.session.get_json(self.BASE_URL, params=params)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 errors.append(f"datacite: {type(exc).__name__}: {exc}")
                 break
             data = payload.get("data", [])
@@ -400,7 +399,7 @@ class ZenodoClient:
                       "page": page, "sort": "mostrecent"}
             try:
                 payload = self.session.get_json(self.BASE_URL, params=params, headers=headers)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 errors.append(f"zenodo: {type(exc).__name__}: {exc}")
                 break
             hits = (payload.get("hits") or {}).get("hits", [])

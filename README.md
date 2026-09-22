@@ -22,6 +22,11 @@ rather than as noise.
 | Harvest connectors — weather, soil, salinity | `smml.sources` | written, parser-tested, **not run against live APIs** |
 | ISMN bulk-download reader | `smml.sources.ismn` | complete |
 | Literature discovery — repositories, OpenAlex, Europe PMC | `smml.litmine.discover` | written, **not run against live APIs** |
+| Table extraction from theses and reports | `smml.litmine.tables` | complete, round-trip exact |
+| Document triage by expected table yield | `smml.litmine.triage` | complete |
+| Grey-literature harvest — OAI-PMH, Dataverse | `smml.litmine.repositories` | written, **endpoints unverified** |
+| Cross-lingual terms and normalisation | `smml.litmine.multilingual` | complete |
+| Endpoint verification | `smml.util.verify` | complete |
 | Figure digitization — vector + raster | `smml.litmine.digitize` | complete and measured |
 | Database — star schema, idempotent Parquet + DuckDB | `smml.db` | complete |
 | Sensor physics — clay, salinity, unit harmonization | `smml.physics` | complete and cross-validated |
@@ -49,6 +54,17 @@ host by policy — ISRIC, NASA POWER, OpenAlex, Crossref, NOAA, ISMN all return
   unit and null salinity;
 - expect to fix an endpoint or two on first run. Expect *not* to find a −999 mm
   rainfall day or a conductivity wrong by a factor of 3600.
+
+**There is tooling for exactly this.** `smml verify endpoints` probes every
+catalogued URL, tells you which moved and where to, and writes a CSV designed to
+be handed back for repair. It correctly distinguishes a host blocked by a local
+network policy from a genuinely broken endpoint, so a restricted network does not
+turn into a hundred spurious failures.
+
+```bash
+smml verify endpoints        # probes the 91 recalled entries, writes endpoint_report.csv
+smml verify repositories     # speaks OAI-PMH to the grey-literature seeds
+```
 
 Everything that does not require the network — the physics, the database, the
 digitizer, QC, features, models, evaluation, tuning — is complete and was run.
@@ -200,6 +216,68 @@ The remaining 34 are `unknown`, which is the honest answer rather than a guess.
 ISMN carries no irrigation attribute at all, which is why
 `smml.sources.ismn.flag_likely_irrigated` exists.
 
+## Table extraction — the higher-yield path
+
+Digitizing a plotted curve recovers perhaps 5–15 points at ~2 % positional
+error, after a calibration that does not amortize. **A table in a thesis
+appendix carries 50–500 exact values**, and one parser handles every table in
+the document.
+
+Measured on a generated appendix PDF whose values are known: **88 of 88
+recovered, with zero error.** Not a tolerance — reading a table involves no
+tracing at all.
+
+```bash
+smml literature tables thesis.pdf --study-id 10.1234/xyz --out values.csv
+```
+
+Where those tables are is the other half. Journals strip appendices; degree
+regulations force them in. So the harvest is ranked by *"does this contain a
+depth × date table"* rather than *"is this about soil moisture"* — a different
+question that gives a very different ordering:
+
+| document | table probability |
+|---|---|
+| PhD thesis, neutron probe at 15 cm increments, data in Appendix C | **0.99** |
+| IAEA-TECDOC, neutron scattering vs TDR across irrigated plots | 0.80 |
+| Kansas AES limited-irrigation research report | 0.79 |
+| *Machine learning prediction of root zone soil moisture from SMAP* | 0.04 |
+| Review of soil moisture sensing technologies | 0.005 |
+
+The modelling paper is highly relevant and publishes nothing. That is the point.
+
+```bash
+smml literature triage candidates.csv
+smml literature repositories --list
+```
+
+Grey literature is reachable because almost all of it speaks **OAI-PMH** —
+Digital Commons at `/do/oai/`, DSpace at `/oai/request` — so one harvester
+covers the entire land-grant tier, CGSpace, Shodhganga and KrishiKosh. Dataverse
+likewise gives every installation one API; ICRISAT Patancheru alone holds
+neutron-probe profiles at 15 cm increments to 180 cm across decades.
+
+## Searching in the languages the data is actually in
+
+Most of the world's irrigated soil water measurements were not written in
+English. `smml.litmine.multilingual` carries seed terms for Chinese, Persian,
+Turkish, Spanish, Portuguese, Arabic, Russian, Japanese and Korean — and, more
+importantly, the normalisation without which an exact match silently returns
+nothing:
+
+- **Persian** stores the same word with Arabic ي or Persian ی, inconsistently
+  across Iranian databases, with zero-width non-joiners inside common compounds.
+- **Turkish** has the dotted/dotless i: `"KISITLI".lower()` gives `kisitli`, not
+  `kısıtlı`. The classic Turkish-I bug corrupts every token containing the letter.
+- **Arabic** scanned-PDF text layers are full of presentation forms that render
+  identically to base letters and never match them.
+- **Portuguese** splits BR/PT on exactly the query words — umidade/humidade,
+  irrigação/rega, nêutrons/neutrões.
+
+Hindi and the other Indian languages are *deliberately skipped*, and the module
+raises if you ask for them: Indian agricultural research publishes in English,
+and that effort belongs in Shodhganga and KrishiKosh instead.
+
 ## Figure digitization
 
 A large share of irrigated-field soil moisture exists only as ink in a paper.
@@ -286,7 +364,8 @@ humid-climate test site scored 18 % precision. Use the confidence score.
 src/smml/
   registry/     168 catalogued sources, 24 technique recipes, 93 studies (YAML)
   sources/      harvest connectors (weather, soil + salinity)
-  litmine/      literature discovery; figure digitization
+  litmine/      discovery, triage, table extraction, figure digitization,
+                grey-literature harvest, cross-lingual terms, compliance
   db/           star schema; idempotent Parquet store with DuckDB views
   physics/      dielectric response, water retention, FAO-56, simulator
   qc/           quality control; irrigation inference
@@ -303,9 +382,9 @@ docs/research/  the research sweep's own output, preserved verbatim
 ## Verification
 
 ```bash
-pytest tests/unit            # 289 fast tests
+pytest tests/unit            # 413 fast tests
 pytest tests/integration     # 14 end-to-end tests (~2 min)
-pytest                       # all 303, no network required
+pytest                       # all 427, no network required
 ```
 
 What is checked, and against what:

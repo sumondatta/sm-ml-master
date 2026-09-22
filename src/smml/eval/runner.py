@@ -58,7 +58,7 @@ class CVResult:
 
     def summary_row(self) -> dict[str, Any]:
         row = {"model": self.model_name, "split": self.split_name, "target": self.target_col}
-        row.update({k: v for k, v in self.overall.items()})
+        row.update(dict(self.overall.items()))
         row.update({k: v for k, v in self.per_site.items() if k.startswith("site_mean")})
         row.update({k: self.skill[k] for k in ("r_between", "r_within", "ubrmse_within")
                     if k in self.skill})
@@ -175,9 +175,9 @@ def run_cv(
         return metrics_by_group(work, score_against, "prediction", name)
 
     by_depth = stratify(_depth_band(scored["depth_mid_cm"]) if "depth_mid_cm" in scored else None, "depth_band")
-    by_texture = stratify(scored["texture_class"] if "texture_class" in scored else None, "texture_class")
+    by_texture = stratify(scored.get("texture_class", None), "texture_class")
     by_salinity = stratify(_salinity_band(scored["ece_ds_m"]) if "ece_ds_m" in scored else None, "salinity_band")
-    by_irrigation = stratify(scored["irrigation_method"] if "irrigation_method" in scored else None, "irrigation_method")
+    by_irrigation = stratify(scored.get("irrigation_method", None), "irrigation_method")
 
     model_name = model_factory().name
     return CVResult(

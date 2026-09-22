@@ -266,7 +266,7 @@ def per_site_then_average(
     out = {f"site_mean_{k}": _agg(per_site[k], "mean") for k in ALL_METRICS if k in per_site}
     out.update({f"site_median_{k}": _agg(per_site[k], "median")
                 for k in ALL_METRICS if k in per_site})
-    out["n_sites"] = int(len(per_site))
+    out["n_sites"] = len(per_site)
     return out
 
 

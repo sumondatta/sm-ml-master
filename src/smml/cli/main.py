@@ -11,6 +11,10 @@ run.
     smml harvest soil    --sites sites.csv
     smml literature discover              find papers and datasets
     smml literature digitize FIG.png      recover numbers from a figure
+    smml literature tables THESIS.pdf     recover numbers from tables (far higher yield)
+    smml literature triage cands.csv      rank documents by expected table yield
+    smml literature repositories --list   grey-literature sources
+    smml verify endpoints                 probe the catalogue, report what is broken
     smml simulate                         generate a synthetic corpus
     smml qc                               run the quality control suite
     smml train                            fit and cross-validate
@@ -33,9 +37,12 @@ app = typer.Typer(add_completion=False, help=__doc__, no_args_is_help=True)
 registry_app = typer.Typer(help="Inspect the catalogue of data sources.", no_args_is_help=True)
 harvest_app = typer.Typer(help="Fetch data from external sources.", no_args_is_help=True)
 literature_app = typer.Typer(help="Discover and mine the literature.", no_args_is_help=True)
+verify_app = typer.Typer(help="Check that catalogued endpoints are reachable.",
+                         no_args_is_help=True)
 app.add_typer(registry_app, name="registry")
 app.add_typer(harvest_app, name="harvest")
 app.add_typer(literature_app, name="literature")
+app.add_typer(verify_app, name="verify")
 
 console = Console()
 
@@ -211,10 +218,7 @@ def harvest_soil(
     _setup_logging(verbose)
     frame = pd.read_csv(sites)
     connector = SOIL_CONNECTORS[source]()
-    if source == "usda_sda":
-        result = connector.fetch_batch(frame)
-    else:
-        result = connector.fetch_many(frame)
+    result = connector.fetch_batch(frame) if source == "usda_sda" else connector.fetch_many(frame)
     store = Store(out)
     written = store.write("sites", result.sites, mode="upsert") if not result.sites.empty else 0
     console.print(f"[green]wrote {written:,} site-layer rows[/green]")
@@ -424,6 +428,194 @@ def qc(
     result = run_qc(frame, theta_col="theta_m3m3", date_col="time_utc")
     _print_frame(qc_summary(result), "quality control")
     console.print(f"[green]{len(result):,} observations flagged, none dropped[/green]")
+
+
+@literature_app.command("tables")
+def literature_tables(
+    pdf: Path = typer.Argument(..., exists=True, help="PDF to extract soil water tables from"),
+    study_id: str = typer.Option("", help="DOI or identifier to stamp on every value"),
+    min_score: float = typer.Option(0.5, help="Reject tables below this table-likeness score"),
+    out: Path = typer.Option(None, help="CSV to write the long-format values to"),
+    show_rejected: bool = typer.Option(False, help="Also list the tables that were rejected"),
+) -> None:
+    """Recover soil water values from tables in a document.
+
+    Higher yield than digitizing figures by roughly two orders of magnitude, and
+    the values are exact rather than traced. Theses and experiment station
+    reports are where these tables live.
+    """
+    import pandas as pd
+
+    from ..litmine.tables import harvest_tables
+
+    _setup_logging(False)
+    values, tables = harvest_tables(pdf, study_id=study_id, min_score=min_score)
+
+    summary = pd.DataFrame([{
+        "pg": t.page, "shape": f"{t.shape[0]}x{t.shape[1]}",
+        "score": round(t.score, 2), "basis": t.basis, "unit": t.unit,
+        "depth": t.depth_axis or "", "ok": t.score >= min_score,
+        "accepted": t.score >= min_score,
+    } for t in tables])
+    if not summary.empty and not show_rejected:
+        summary = summary[summary["accepted"]]
+    _print_frame(summary.drop(columns=["accepted"]), f"{len(tables)} tables found",
+                 max_rows=40)
+
+    if values.empty:
+        console.print("[yellow]no soil water values recovered[/yellow]")
+        console.print("[dim]Lower --min-score, or the tables may be images rather than "
+                      "text — those need the figure digitizer instead.[/dim]")
+        raise typer.Exit()
+
+    console.print(f"[green]{len(values):,} values recovered[/green]")
+    _print_frame(values.head(15)[["depth_top_cm", "depth_bottom_cm", "time_label",
+                                  "value", "basis", "unit"]], "sample", max_rows=15)
+
+    gravimetric = values[values["basis"] == "gravimetric"]
+    if not gravimetric.empty:
+        console.print(
+            f"\n[yellow]{len(gravimetric):,} values are gravimetric.[/yellow] Converting "
+            "them to volumetric needs a bulk density, which these documents often do not "
+            "report. They are carried forward unconverted rather than guessed at."
+        )
+    if out:
+        values.to_csv(out, index=False)
+        console.print(f"[green]wrote {out}[/green]")
+
+
+@literature_app.command("triage")
+def literature_triage(
+    candidates: Path = typer.Argument(..., exists=True,
+                                      help="CSV with title, abstract and type columns"),
+    out: Path = typer.Option(None, help="CSV to write the ranked list to"),
+    top: int = typer.Option(25, help="How many to show"),
+) -> None:
+    """Rank documents by whether they contain a depth-by-date soil water table.
+
+    Different from ranking by relevance, and the difference matters: a paper
+    modelling soil moisture with machine learning is highly relevant and
+    publishes no data.
+    """
+    import pandas as pd
+
+    from ..litmine.triage import triage, yield_estimate
+
+    _setup_logging(False)
+    ranked = triage(pd.read_csv(candidates))
+    if ranked.empty:
+        console.print("[yellow]nothing to rank[/yellow]")
+        raise typer.Exit()
+
+    columns = [c for c in ("table_probability", "genre", "title") if c in ranked.columns]
+    _print_frame(ranked.head(top)[columns], f"top {min(top, len(ranked))} of {len(ranked)}",
+                 max_rows=top)
+    _print_frame(yield_estimate(ranked), "expected yield by probability band", max_rows=10)
+    if out:
+        ranked.to_csv(out, index=False)
+        console.print(f"[green]wrote {out}[/green]")
+
+
+@literature_app.command("repositories")
+def literature_repositories(
+    list_only: bool = typer.Option(False, "--list", help="List the seed repositories"),
+    only: str = typer.Option(None, help="Comma-separated short_ids to harvest"),
+    max_records: int = typer.Option(2000, help="Per repository"),
+    out: Path = typer.Option(None),
+) -> None:
+    """Harvest grey literature from OAI-PMH repositories.
+
+    Theses and experiment station reports, which the article databases index
+    worst and which carry the densest tables. Digital Commons and DSpace both
+    speak OAI-PMH, so one harvester reaches the whole land-grant tier.
+    """
+    import pandas as pd
+
+    from ..litmine.repositories import SEED_REPOSITORIES, harvest_seed_repositories
+    from ..litmine.triage import triage
+
+    _setup_logging(False)
+    if list_only:
+        frame = pd.DataFrame([{
+            "short_id": r.short_id, "name": r.name[:40], "platform": r.platform,
+            "country": r.country, "why": r.why[:60],
+        } for r in SEED_REPOSITORIES])
+        _print_frame(frame, f"{len(frame)} seed repositories", max_rows=40)
+        console.print("[dim]Every URL is recalled, not verified. Run "
+                      "`smml verify repositories` before trusting one.[/dim]")
+        raise typer.Exit()
+
+    selected = tuple(only.split(",")) if only else None
+    records = harvest_seed_repositories(max_records_each=max_records, only=selected)
+    if records.empty:
+        console.print("[yellow]no records harvested[/yellow]")
+        raise typer.Exit()
+
+    ranked = triage(records, id_col="oai_identifier")
+    console.print(f"[green]{len(ranked):,} records from "
+                  f"{ranked['repository_id'].nunique()} repositories[/green]")
+    _print_frame(ranked.head(20)[["table_probability", "genre", "title"]],
+                 "most likely to contain a table", max_rows=20)
+    if out:
+        ranked.to_csv(out, index=False)
+        console.print(f"[green]wrote {out}[/green]")
+
+
+@verify_app.command("endpoints")
+def verify_endpoints(
+    category: str = typer.Option(None, help="Restrict to one source category"),
+    recalled_only: bool = typer.Option(
+        True, help="Only entries never corroborated by a search — where failures concentrate"
+    ),
+    limit: int = typer.Option(None, help="Stop after this many"),
+    out: Path = typer.Option(Path("endpoint_report.csv"), help="CSV to write"),
+) -> None:
+    """Probe every catalogued endpoint and report which need fixing.
+
+    91 of the 168 registry entries are recalled rather than verified, and no
+    connector has ever contacted a live server. Run this on a machine with open
+    internet; the CSV it writes is designed to be handed back for repair.
+    """
+    from ..util.verify import summarize, verify_registry
+
+    _setup_logging(False)
+    console.print("[dim]probing; this is rate-limited per host and will take a few "
+                  "minutes[/dim]")
+    report = verify_registry(category=category, recalled_only=recalled_only, limit=limit)
+    if report.empty:
+        console.print("[yellow]nothing to probe[/yellow]")
+        raise typer.Exit()
+
+    _print_frame(summarize(report), "results", max_rows=15)
+    broken = report[report["needs_fix"]]
+    if not broken.empty:
+        console.print(f"\n[yellow]{len(broken)} endpoints need fixing[/yellow]")
+        _print_frame(broken[["short_id", "status", "http_code", "url"]],
+                     "needs fixing", max_rows=40)
+    blocked = report[report["status"] == "blocked_by_egress_policy"]
+    if not blocked.empty:
+        console.print(f"[dim]{len(blocked)} were blocked by a network policy rather than "
+                      "by the service; those results say nothing about the endpoint.[/dim]")
+    report.to_csv(out, index=False)
+    console.print(f"[green]wrote {out}[/green] — send this back and the connectors can "
+                  "be fixed against it")
+
+
+@verify_app.command("repositories")
+def verify_repositories_cmd(
+    out: Path = typer.Option(Path("repository_report.csv")),
+) -> None:
+    """Check the OAI-PMH seed repositories by speaking the protocol to them."""
+    from ..util.verify import verify_repositories
+
+    _setup_logging(False)
+    report = verify_repositories()
+    _print_frame(report[["short_id", "status", "reported_name", "earliest_record"]],
+                 f"{len(report)} repositories", max_rows=40)
+    alive = int((report["status"] == "alive").sum())
+    console.print(f"[green]{alive} of {len(report)} answered as OAI endpoints[/green]")
+    report.to_csv(out, index=False)
+    console.print(f"[green]wrote {out}[/green]")
 
 
 @app.command("compliance")

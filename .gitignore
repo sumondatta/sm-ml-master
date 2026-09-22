@@ -36,3 +36,7 @@ mlruns/
 *.pt
 *.joblib
 optuna*.db
+
+# Generated test fixtures — make_thesis_pdf.py rebuilds them
+tests/fixtures/*.npy
+tests/fixtures/thesis_appendix.pdf

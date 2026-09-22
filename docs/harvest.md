@@ -8,6 +8,19 @@ endpoint or two.
 
 Work outward from the data that is cheapest and best.
 
+**0. Verify the endpoints before anything else.** 91 of the 168 catalogued
+sources are `recalled` rather than confirmed, and no connector here has ever
+contacted a live server.
+
+```bash
+smml verify endpoints        # writes endpoint_report.csv
+smml verify repositories     # speaks OAI-PMH to the grey-literature seeds
+```
+
+The report distinguishes a moved endpoint (fixable, and it tells you the
+redirect target) from a host blocked by a local network policy (not a fault).
+Twenty minutes here saves a day of debugging connectors against the wrong URL.
+
 **1. Repositories, before anything else.** A dataset in Zenodo, Dryad or Pangaea
 is the numbers themselves — machine-readable, licensed, no digitization error.
 Roughly half the catalogued studies have one.
@@ -28,7 +41,37 @@ captions, which finds exactly the papers whose data is plotted.
 smml literature discover
 ```
 
-**4. Figures.** Whatever is left. See below.
+**4. Tables, then figures.** In that order, and the order matters more than it
+sounds. Digitizing a curve gives 5–15 traced points; a thesis appendix table
+gives 50–500 exact ones, and a single parser handles every table in the
+document.
+
+```bash
+smml literature triage candidates.csv --out ranked.csv   # rank by expected table yield
+smml literature tables thesis.pdf --out values.csv       # then extract
+```
+
+Rank by *"does this contain a depth × date table"*, not by *"is this about soil
+moisture"*. They give very different orderings: a paper modelling soil moisture
+with machine learning is maximally relevant and publishes nothing.
+
+The genre priors in `smml.litmine.triage.GENRE_PRIOR` are recalled estimates.
+Once a few hundred documents have been processed, replace them with measured
+yield — count values recovered per document by genre and refit. That single
+recalibration is worth more than any other tuning in the harvest.
+
+**Grey literature is where the tables are.** Theses, experiment station field-day
+reports and the Joint FAO/IAEA neutron-probe programme's national reports.
+Almost all of it speaks OAI-PMH, so one harvester reaches the lot:
+
+```bash
+smml literature repositories --list
+smml literature repositories --only newprairiepress,oaktrust --out grey.csv
+```
+
+The scalable version is not the seed list: pull OpenDOAR, filter to agriculture
+and environment subjects, and harvest every OAI base URL it returns —
+`repositories_from_opendoar()` does that and needs a free key.
 
 **5. Covariates last.** Only once you know which sites exist — soil and weather
 are queried per site and there is no point fetching either for a site you will

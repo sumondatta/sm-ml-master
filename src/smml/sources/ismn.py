@@ -214,7 +214,7 @@ class IsmnConnector(Connector):
                 break
             try:
                 parsed = parse_stm(text, name)
-            except Exception as exc:  # noqa: BLE001 - one bad file must not stop the read
+            except Exception as exc:
                 errors.append(f"{name}: {type(exc).__name__}: {exc}")
                 continue
             if parsed is None or (variable and variable not in parsed.variable):

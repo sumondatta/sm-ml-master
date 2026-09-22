@@ -30,8 +30,8 @@ from smml.physics.simulator import (
 
 
 def _site(**kw) -> SiteSpec:
-    base = dict(site_id="t", lat=37.0, lon=-100.5, elevation_m=850.0,
-                sand_pct=40.0, clay_pct=25.0, om_pct=2.0, crop="maize")
+    base = {"site_id": "t", "lat": 37.0, "lon": -100.5, "elevation_m": 850.0,
+                "sand_pct": 40.0, "clay_pct": 25.0, "om_pct": 2.0, "crop": "maize"}
     base.update(kw)
     return SiteSpec(**base)
 

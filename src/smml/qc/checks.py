@@ -58,7 +58,9 @@ def flag_physical_range(
     outside = (theta < HARD_MIN) | (theta > HARD_MAX)
     flags[outside & theta.notna()] = QualityFlag.OUT_OF_PHYSICAL_RANGE.value
     if porosity is not None:
-        limit = (porosity + tolerance) if np.isscalar(porosity) else (porosity + tolerance)
+        # Scalar or Series alike, the tolerance simply adds; an earlier version
+        # branched on np.isscalar with identical bodies, which did nothing.
+        limit = porosity + tolerance
         over = theta.notna() & (theta > limit) & ~outside
         flags[over] = QualityFlag.EXCEEDS_SATURATION.value
     return flags

@@ -164,7 +164,7 @@ class PointQueryConnector(Connector):
             identifier = getattr(row, id_col) if id_col and hasattr(row, id_col) else None
             try:
                 result = self.fetch_point(lat=lat, lon=lon, site_id=identifier, **kwargs)
-            except Exception as exc:  # noqa: BLE001 - one bad point must not end the harvest
+            except Exception as exc:
                 message = f"{self.short_id} {identifier or (lat, lon)}: {type(exc).__name__}: {exc}"
                 log.warning(message)
                 total.errors.append(message)

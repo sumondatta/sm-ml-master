@@ -153,17 +153,20 @@ def mualem_conductivity(
     theta_s: ArrayLike,
     n: ArrayLike,
     k_sat: ArrayLike,
-    l: float = 0.5,
+    pore_connectivity: float = 0.5,
 ) -> NDArray[np.float64]:
     """Mualem-van Genuchten unsaturated hydraulic conductivity, same units as k_sat.
 
         K = Ks Se^l [1 - (1 - Se^(1/m))^m]^2
+
+    ``pore_connectivity`` is Mualem's *l*, conventionally 0.5. Spelled out rather
+    than named ``l``, which is indistinguishable from a digit in most fonts.
     """
     th, tr, ts, nn, ks = (_arr(v) for v in (theta, theta_r, theta_s, n, k_sat))
     m = 1.0 - 1.0 / nn
     se = np.clip((th - tr) / (ts - tr), 1e-9, 1.0)
     inner = 1.0 - (1.0 - se ** (1.0 / m)) ** m
-    out = ks * se**l * inner**2
+    out = ks * se**pore_connectivity * inner**2
     return np.where((nn > 1.0) & (ts > tr) & (ks > 0), out, np.nan)
 
 

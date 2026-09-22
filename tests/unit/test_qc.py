@@ -32,6 +32,7 @@ from smml.qc.checks import (
     run_qc,
 )
 
+
 def clean_series(n: int = 600, noise: float = 0.004, seed: int = 0) -> pd.Series:
     """A well-behaved series with a deliberately fast 60-day oscillation.
 

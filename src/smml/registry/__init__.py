@@ -39,7 +39,7 @@ import yaml
 REGISTRY_DIR = Path(__file__).parent
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _load(name: str) -> dict[str, Any]:
     path = REGISTRY_DIR / f"{name}.yaml"
     if not path.exists():

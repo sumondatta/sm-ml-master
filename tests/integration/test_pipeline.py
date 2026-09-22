@@ -48,7 +48,7 @@ def modelling_table(corpus, tmp_path_factory):
 
 
 def test_pipeline_produces_a_usable_modelling_table(modelling_table):
-    frame, features, categorical = modelling_table
+    frame, features, _categorical = modelling_table
     assert len(frame) > 10_000
     assert len(features) > 100
     assert frame["site_id"].nunique() == 16
@@ -127,7 +127,7 @@ def test_learned_model_beats_the_static_baseline_on_temporal_skill(modelling_tab
     frame = frame.sample(n=min(40_000, len(frame)), random_state=1).reset_index(drop=True)
     splitter = get_splitter("leave_site_out", n_folds=3)
 
-    table, results = compare_models(
+    _table, results = compare_models(
         frame, features, CLAY_CORRECTED_TARGET,
         {
             "field_capacity": FieldCapacityBaseline,
@@ -211,8 +211,8 @@ def test_tuning_study_resumes_rather_than_restarting(modelling_table, tmp_path):
     frame, features, _ = modelling_table
     frame = frame.sample(n=8000, random_state=5).reset_index(drop=True)
     storage = f"sqlite:///{tmp_path / 'resume.db'}"
-    common = dict(n_inner_folds=2, study_name="resume", storage=storage,
-                  n_startup_trials=2, inner_validation_fraction=0.0)
+    common = {"n_inner_folds": 2, "study_name": "resume", "storage": storage,
+                  "n_startup_trials": 2, "inner_validation_fraction": 0.0}
 
     def builder(params):
         return LightGBMModel(params=params, num_boost_round=80)

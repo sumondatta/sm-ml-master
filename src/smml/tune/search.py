@@ -401,7 +401,7 @@ def save_best_params(result: TuningResult, path: Path | str | None = None) -> Pa
         "study_name": result.config.study_name,
         "metric": result.config.metric,
         "best_value": result.best_value,
-        "n_trials": int(len(result.trials)),
+        "n_trials": len(result.trials),
         "params": result.best_params,
     }
     path.write_text(yaml.safe_dump(payload, sort_keys=False))

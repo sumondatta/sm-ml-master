@@ -619,7 +619,7 @@ def generate_corpus(
     years: int = 4,
     start: str = "2016-01-01",
     seed: int = 20240501,
-) -> tuple["pd.DataFrame", "pd.DataFrame"]:
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Generate a synthetic multi-site corpus in the harmonized long format.
 
     Returns ``(observations, sites)``: a long table with one row per site-day-layer
