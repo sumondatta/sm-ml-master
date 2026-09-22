@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smml"
+version = "0.1.0"
+description = "Global harmonized soil moisture database + multi-depth soil moisture simulation for irrigated agriculture"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Sumon Datta" }]
+keywords = ["soil moisture", "irrigation", "machine learning", "agriculture", "hydrology"]
+
+dependencies = [
+  "numpy>=1.24",
+  "pandas>=2.0",
+  "scipy>=1.10",
+  "scikit-learn>=1.3",
+  "pyarrow>=14",
+  "duckdb>=0.10",
+  "lightgbm>=4.0",
+  "xgboost>=2.0",
+  "optuna>=3.5",
+  "requests>=2.31",
+  "tenacity>=8.2",
+  "pyyaml>=6.0",
+  "pydantic>=2.5",
+  "typer>=0.9",
+  "rich>=13.0",
+  "tqdm>=4.66",
+  "joblib>=1.3",
+  "platformdirs>=4.0",
+]
+
+[project.optional-dependencies]
+geo = ["xarray>=2023.1", "netCDF4>=1.6", "rioxarray>=0.15", "rasterio>=1.3", "shapely>=2.0", "pyproj>=3.6"]
+dl = ["torch>=2.1"]
+lit = ["pymupdf>=1.23", "opencv-python-headless>=4.8", "pillow>=10", "scikit-image>=0.22", "beautifulsoup4>=4.12", "lxml>=5.0"]
+ocr = ["pytesseract>=0.3.10", "easyocr>=1.7"]
+viz = ["matplotlib>=3.7", "seaborn>=0.13"]
+dev = ["pytest>=7.4", "pytest-cov>=4.1", "ruff>=0.3", "mypy>=1.8", "responses>=0.24", "hypothesis>=6.90"]
+all = ["smml[geo,dl,lit,viz,dev]"]
+
+[project.scripts]
+smml = "smml.cli.main:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+smml = ["py.typed", "registry/*.yaml", "registry/*.json"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "RUF"]
+ignore = ["E501", "B008", "RUF012"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = [
+  "network: requires outbound internet access (skipped by default)",
+  "slow: long-running test",
+]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_unused_ignores = false
