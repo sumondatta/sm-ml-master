@@ -1,0 +1,12 @@
+check,n,pct
+qc_clay_suspect,261255,47.692
+qc_salinity_suspect,49302,9.0
+qc_rise_no_input,45532,8.312
+qc_frozen,33402,6.097
+qc_spike,3097,0.565
+qc_step_change,1030,0.188
+qc_flatline,732,0.134
+qc_exceeds_saturation,27,0.005
+qc_missing,0,0.0
+qc_out_of_range,0,0.0
+qc_drift,0,0.0

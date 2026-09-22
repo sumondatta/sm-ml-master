@@ -1,0 +1,1372 @@
+techniques:
+- name: OpenAlex Works API — primary discovery backbone
+  what: 'REST API over ~260M scholarly works with abstracts (as inverted index), OA status, topics, references,
+    and per-work `locations` (all known hosts, incl. PDF URLs). Base: https://api.openalex.org . Entity
+    endpoints: /works, /works/{id}, /authors, /sources, /institutions, /topics. IDs accepted: W123456789,
+    https://doi.org/10.x/y, doi:10.x/y, pmid:12345.'
+  why: This is the cheapest way to enumerate the candidate corpus. Nothing else gives you 250M+ records,
+    free, with cursor paging to unlimited depth, plus `best_oa_location.pdf_url` so you can go straight
+    from a boolean query to a downloadable PDF. It is the spine that the whole literature-mining pipeline
+    hangs off.
+  how: 'CRITICAL CHANGE (verify first — this broke every old tutorial): as of 2026-02-13 OpenAlex REQUIRES
+    an API key. Anonymous = 100 credits/day (testing only). Free registered key = 100,000 credits/day.
+    The old `mailto=` polite-pool parameter is now IGNORED. Get a key at openalex.org/settings/api and
+    pass `api_key=YOUR_KEY` as a URL query parameter (also send it as a header if the docs offer one;
+    the URL param is confirmed). Keep the secondary limit in mind: ~10 requests/second.
+
+
+    Query construction:
+
+    - Full-text-ish search: `?search=<string>` searches title + abstract + fulltext (where OpenAlex has
+    n-grams). Field-scoped: `?filter=title_and_abstract.search:<string>` (recommended for precision),
+    `title.search:`, `abstract.search:`, `fulltext.search:`, `default.search:`.
+
+    - Boolean: AND / OR / NOT must be UPPERCASE; phrases in double quotes. NOTE: wildcards (`irrigat*`)
+    are NOT supported — enumerate the morphological variants explicitly (irrigation OR irrigated OR irrigating
+    OR irrigate).
+
+    - Stack filters with comma = AND, pipe = OR: `?filter=title_and_abstract.search:...,publication_year:1990-2026,type:article,open_access.is_oa:true,language:en`
+
+    - Useful filters: `has_doi:true`, `has_fulltext:true`, `primary_topic.id:`, `concepts.id:`, `cited_by_count:>10`,
+    `from_publication_date:1990-01-01`, `authorships.institutions.country_code:us|in|cn`.
+
+    - Trim payload: `&select=id,doi,title,publication_year,primary_location,best_oa_location,locations,open_access,authorships,abstract_inverted_index,topics,referenced_works,type,language`
+    (cuts response size ~5x, matters at 100k works).
+
+    - Paging: for <10,000 results use `page`/`per_page` (per_page max 200 on works, 25 default; page*per_page
+    <= 10,000). For anything bigger use cursor paging: first call `&cursor=*&per_page=200`, then read
+    `meta.next_cursor` and pass it back as `&cursor=<value>` until `next_cursor` is null. Cursor and `page`
+    are mutually exclusive.
+
+    - Free reconnaissance: `&group_by=publication_year` / `&group_by=primary_topic.id` returns counts
+    without burning result pages — use this to size a query before harvesting it.
+
+
+    Abstracts come back as `abstract_inverted_index` ({token: [positions]}); reconstruct with: `words
+    = [None]*(max(pos)+1); for w, ps in inv.items(): for p in ps: words[p]=w; abstract='' ''.join(w for
+    w in words if w)`.
+
+
+    Also worth harvesting for free: the full OpenAlex snapshot on S3 (`s3://openalex/data/works/`, requester-pays-free,
+    JSON-Lines gzipped, ~400GB). For a terabyte-scale project, pull the snapshot once into DuckDB/Parquet
+    and run your boolean queries locally — zero rate limits, full-text n-grams included. This is strongly
+    recommended over 100k API calls/day.
+
+
+    Python: `pyalex` (handles cursor paging + key), or plain `httpx` + `tenacity` retry on 429/5xx with
+    exponential backoff and Retry-After honoring.'
+  confidence: confirmed
+  priority: 1
+  libraries:
+  - pyalex
+  - httpx
+  - tenacity
+  - duckdb
+  - pyarrow
+  - boto3
+  pitfalls: (1) The Feb 2026 API-key requirement silently degrades old code to 100 calls/day — you will
+    think the API is broken. (2) `mailto=` is a no-op now; don't rely on it. (3) `.search` filter suffixes
+    are being deprecated in favour of the `search` param — keep both code paths. (4) `abstract_inverted_index`
+    is null for many paywalled Elsevier works. (5) OpenAlex `type` is noisy; `type:article` still contains
+    editorials and errata. (6) The 10k deep-paging wall silently returns errors, not truncation — always
+    cursor for big harvests.
+- name: Crossref REST API — DOI ground truth, funder/licence metadata, full-text links
+  what: 'https://api.crossref.org . Endpoints: /works, /works/{doi}, /journals/{issn}/works, /members/{id}/works,
+    /prefixes/{prefix}/works. Returns registered metadata: title, container-title, ISSN, published date,
+    author ORCIDs, licence array, funder array, `link` array (full-text URLs incl. `application/pdf` with
+    `intended-application: text-mining`), `reference` list, `update-to` (retractions).'
+  why: Crossref is the authoritative record for DOI, journal, dates and — crucially — the `link` array
+    with text-mining-intended full-text URLs and the `license` array. You need licence strings per paper
+    to decide what you may redistribute in your dataset. It is also your retraction/erratum check.
+  how: "Query: `https://api.crossref.org/works?query.bibliographic=<free text>&filter=from-pub-date:1990-01-01,type:journal-article,has-full-text:true&rows=1000&mailto=you@example.com`.\n\
+    Field queries: `query.title`, `query.container-title`, `query.author`, `query.bibliographic` (best\
+    \ for fuzzy reference matching).\nFilters worth using: `has-full-text:true`, `full-text.type:application/pdf`,\
+    \ `full-text.application:text-mining`, `license.url:`, `has-license:true`, `has-abstract:true`, `update-type:retraction`,\
+    \ `funder:`, `issn:`.\nPaging: `rows` max 1000; beyond 10k results use cursor — first call `&cursor=*`,\
+    \ then follow `message.next-cursor`. The API stops returning a cursor when exhausted.\nRate limit:\
+    \ Crossref is still on the polite-pool model — include `mailto=` in the query string (or a `User-Agent:\
+    \ MyTool/1.0 (mailto:you@example.com)` header) to get the polite pool, roughly 50 req/s; anonymous\
+    \ pool is much slower and throttled. Read the `X-Rate-Limit-Limit` and `X-Rate-Limit-Interval` response\
+    \ headers and adapt.\nReverse lookup for reference matching: POST-free `https://api.crossref.org/works?query.bibliographic=<raw\
+    \ citation string>&rows=5` then score with `rapidfuzz`; accept if normalized title similarity >= 0.9\
+    \ and year matches.\nPython: `habanero` (Crossref\0-maintained-ish client) or raw httpx."
+  confidence: confirmed
+  priority: 2
+  libraries:
+  - habanero
+  - httpx
+  - rapidfuzz
+  pitfalls: Abstracts are present for only ~25% of works (JATS-encoded in `abstract`). `link` URLs usually
+    403 unless you are on a Crossref TDM agreement or the article is OA — treat them as hints, resolve
+    real PDFs through Unpaywall/CORE. Crossref `title` is an array, not a string. Deposited metadata quality
+    varies wildly by publisher.
+- name: Semantic Scholar Graph API + S2ORC full-text corpus
+  what: 'Graph API base: https://api.semanticscholar.org/graph/v1 . Endpoints: /paper/search (relevance,
+    ≤100/page, ≤1000 total), /paper/search/bulk (1000/call, continuation token, up to 10M), /paper/search/match
+    (single best title match), /paper/{id} where id can be DOI:, ARXIV:, PMID:, CorpusId:, /paper/batch
+    (POST up to 500 IDs), /paper/{id}/citations, /paper/{id}/references. Datasets API: https://api.semanticscholar.org/datasets/v1/release/latest/dataset/s2orc
+    — S2ORC is the machine-readable full-text corpus (~12M+ full texts) with annotation spans for sections,
+    figures, tables, bibliography.'
+  why: S2ORC is the single biggest pre-parsed full-text corpus you can legitimately bulk-download, and
+    its annotation spans mean you can locate figure captions and methods sections without running your
+    own PDF parser on millions of papers. The Graph API's `/paper/search/bulk` plus `tldr` and `openAccessPdf`
+    fields is the best OA-PDF firehose after OpenAlex.
+  how: 'Bulk search: `GET /paper/search/bulk?query=<boolean>&fields=title,abstract,year,externalIds,openAccessPdf,publicationTypes,venue,fieldsOfStudy,s2FieldsOfStudy&year=1990-2026&openAccessPdf`.
+    The `query` supports `+` (AND), `|` (OR), `-` (NOT), `"phrase"`, `*` prefix wildcard, `~N` fuzzy.
+    Returns `token`; pass back as `&token=<token>` until null. 1000 records per call, 10M cap per query.
+
+    Batch enrichment: `POST /paper/batch?fields=...` with body `{"ids":["DOI:10.1016/...", ...]}`, max
+    500 per call — use this to hydrate DOIs you got from OpenAlex.
+
+    Auth/limits: no key required but heavily throttled (shared unauthenticated pool, on the order of 5,000
+    req / 5 min across all users, in practice you will see 429s). Request a free key at semanticscholar.org/product/api#api-key-form
+    (an application form; turnaround days-to-weeks). With a key you get a guaranteed ~1 req/s across endpoints
+    via header `x-api-key: <key>`. Always retry 429 with jittered backoff.
+
+    S2ORC download: `GET /datasets/v1/release/latest/dataset/s2orc` with `x-api-key` returns a list of
+    pre-signed S3 URLs to gzipped JSONL shards. Each record has `corpusid`, `content.text` (full plain
+    text) and `content.annotations` with character-offset spans for `sectionheader`, `paragraph`, `figurecaption`,
+    `tableref`, `bibentry`, etc. Filter shards locally with DuckDB/`ripgrep` on your soil-moisture term
+    list. NOTE: the S2ORC dataset requires an approved API key with dataset access — apply explicitly
+    for it.'
+  confidence: confirmed
+  priority: 2
+  libraries:
+  - semanticscholar
+  - httpx
+  - tenacity
+  - duckdb
+  - zstandard
+  pitfalls: The unauthenticated pool is effectively unusable at scale — apply for the key on day one,
+    it gates S2ORC. `openAccessPdf.url` is sometimes a landing page, not a PDF. S2ORC coverage skews to
+    CS/biomed; agronomy coverage is patchier than Europe PMC + CORE combined. Annotation offsets are into
+    `content.text` — off-by-one if you normalize whitespace first, so slice before cleaning.
+- name: Europe PMC REST API + OA full-text XML
+  what: 'Base: https://www.ebi.ac.uk/europepmc/webservices/rest . Key endpoints: /search (GET and POST),
+    /{source}/{id}/fullTextXML (JATS XML for OA articles, source usually PMC), /{source}/{id}/textMinedTerms,
+    /{source}/{id}/supplementaryFiles (ZIP of supplementary material), /{source}/{id}/references, /{source}/{id}/databaseLinks,
+    /annotations_api.'
+  why: 'Europe PMC is the best free source of STRUCTURED full text (JATS XML) — meaning `<fig>` elements
+    with `<label>`, `<caption>`, and `<graphic xlink:href>`, and `<table-wrap>` with real `<table>` markup.
+    For your project the `/supplementaryFiles` endpoint is gold: agronomy papers frequently park the actual
+    soil moisture time series in a supplementary XLSX/CSV, and this endpoint gets it in one call with
+    no scraping.'
+  how: 'Search: `GET /search?query=<q>&resultType=core&format=json&pageSize=1000&cursorMark=*`. Thread
+    `nextCursorMark` from the response into the next call until it stops changing. `resultType=lite|core|idlist`;
+    use `core` — it includes abstract, journal, licence (`license` field, e.g. `cc by`), `isOpenAccess`,
+    `inEPMC`, `hasSuppl`, `fullTextUrlList`.
+
+    Query syntax is field-prefixed and boolean: `(TITLE:"soil moisture" OR ABSTRACT:"volumetric water
+    content") AND (FULL_TEXT:"drip irrigation" OR FULL_TEXT:"center pivot") AND OPEN_ACCESS:Y AND (PUB_YEAR:[1995
+    TO 2026]) AND LANG:eng`. Other prefixes: `AUTH:`, `JOURNAL:`, `DOI:`, `METHODS:`, `RESULTS:`, `FIG:`
+    (searches figure captions only — extremely useful for you: `FIG:"soil water content"`), `SUPPL:`,
+    `HAS_SUPPL:Y`, `HAS_DATA:Y`, `SRC:MED|PMC|PPR`.
+
+    Use POST /searchPOST (form-encoded, same params) when your boolean string exceeds URL length — yours
+    will.
+
+    Full text: `GET /PMC/PMC1234567/fullTextXML` returns JATS. Parse with `lxml`; figures at `//fig`,
+    caption text at `fig/caption//text()`, image file name at `fig/graphic/@{http://www.w3.org/1999/xlink}href`.
+    Fetch the actual image via the PMC OA package (see below).
+
+    Bulk images: the PMC Open Access Subset is on AWS S3 at `s3://pmc-oa-opendata/` (free, no requester
+    pays) with `oa_comm`/`oa_noncomm` prefixes containing per-article .tar.gz bundles that include the
+    ORIGINAL figure image files (usually .jpg/.png/.tif at publication resolution) plus the .nxml. Downloading
+    the bundle is far better than scraping figure URLs — you get higher-resolution rasters, which directly
+    improves digitization accuracy.
+
+    Rate limit: no key needed; be polite, ~1-3 req/s, and identify yourself with a User-Agent + email.'
+  confidence: confirmed
+  priority: 1
+  libraries:
+  - lxml
+  - httpx
+  - boto3
+  - europepmc (R) / pyeuropepmc
+  pitfalls: Agronomy/soil-science journals (Agricultural Water Management, Field Crops Research, Soil
+    & Tillage Research, Vadose Zone Journal) are mostly NOT in PMC unless funded by NIH/Wellcome/ERC —
+    expect low coverage for your exact field, so Europe PMC is a high-quality but partial source. `FIG:`
+    search only covers PMC full-text records. `fullTextXML` 404s for MED-only records.
+- name: PubMed / NCBI E-utilities
+  what: 'Base: https://eutils.ncbi.nlm.nih.gov/entrez/eutils/ . Tools: esearch.fcgi, efetch.fcgi, esummary.fcgi,
+    elink.fcgi, epost.fcgi. Also the PMC OA service: https://www.ncbi.nlm.nih.gov/pmc/utils/oa/oa.fcgi?id=PMC1234567
+    returning the FTP/S3 path to the article''s tar.gz (figures included).'
+  why: Mostly redundant with Europe PMC for your domain, but it is the canonical route to the PMC OA package
+    (figures at original resolution) and to MeSH-controlled retrieval. Keep it as a secondary channel
+    and for the OA package resolver.
+  how: '`esearch.fcgi?db=pubmed&term=<query>&usehistory=y&retmax=0&api_key=KEY` returns `WebEnv` + `QueryKey`;
+    then `efetch.fcgi?db=pubmed&WebEnv=...&query_key=...&retstart=0&retmax=500&retmode=xml&api_key=KEY`
+    in a loop. History mode avoids re-sending giant boolean strings. Use `epost.fcgi` to push a list of
+    PMIDs into history.
+
+    Rate limits (confirmed): 3 requests/second without a key, 10 requests/second with a free `api_key`
+    (generate in your NCBI account); >10 rps returns HTTP 429. Higher rates by emailing eutilities@ncbi.nlm.nih.gov.
+    Also include `tool=` and `email=` params. Bulk work should run 21:00–05:00 US Eastern per NCBI guidance.
+
+    For figures: `elink.fcgi?dbfrom=pubmed&db=pmc&id=<pmid>` → PMCID → oa.fcgi → tar.gz with .nxml + all
+    figure files.
+
+    Python: `biopython`''s `Bio.Entrez` handles history/paging; `pymed` is lighter.'
+  confidence: confirmed
+  priority: 4
+  libraries:
+  - biopython
+  - httpx
+  pitfalls: PubMed indexes almost no agricultural engineering journals — your recall here will be poor.
+    efetch caps at 10,000 records per esearch without history. The 429 responses come back as HTML, not
+    XML, and break naive parsers.
+- name: CORE API v3 — aggregated OA full text (highest-recall full-text source for agronomy)
+  what: 'Base: https://api.core.ac.uk/v3 . Endpoints: POST/GET /search/works, /search/outputs, /works/{id},
+    /data-providers, /journals, plus a full data dump (~200M+ records, multi-TB, request via core.ac.uk/services/dataset).
+    Indexes repository content from ~11,000 repositories, including university IRs and agricultural research
+    institute repositories that PMC never sees.'
+  why: This is the one that will actually find your irrigated-field soil moisture papers. Thesis chapters,
+    extension-service reports, USDA-ARS and CGIAR repository deposits, and non-PMC journal postprints
+    live here — and those are exactly the documents with multi-depth soil moisture figures. CORE also
+    stores extracted `fullText` for a large fraction, so you can grep before downloading PDFs.
+  how: '`GET https://api.core.ac.uk/v3/search/works?q=<elasticsearch-ish query>&limit=100&offset=0` with
+    header `Authorization: Bearer <API_KEY>`. Register free at core.ac.uk/services/api.
+
+    Query language is Elasticsearch query_string: field-scoped and boolean, e.g. `q=(title:"soil moisture"
+    OR abstract:"volumetric water content") AND fullText:("drip irrigation" OR "center pivot") AND yearPublished>=1995
+    AND _exists_:fullText AND language.code:en`.
+
+    Key returned fields: `id, doi, title, abstract, fullText, downloadUrl, sourceFulltextUrls, yearPublished,
+    publishedDate, documentType, dataProviders, language`. `fullText` is the plain text CORE already extracted
+    — you can run your regexes on it without downloading the PDF at all.
+
+    Paging: `offset`+`limit` works to 10,000; beyond that use `scrollId` (send `scroll=true` on the first
+    call, then `scrollId=` on subsequent calls).
+
+    Rate limit: confirmed roughly 1 batch request or 5 single requests per 10 seconds on the free tier
+    — this is SLOW. For terabyte-scale work, request the CORE dataset dump instead (free for academic
+    use, delivered as compressed JSONL) and query it locally in DuckDB.
+
+    Batch endpoint: `POST /search/works` with a JSON body lets you send long boolean strings that would
+    blow the URL length limit.'
+  confidence: confirmed
+  priority: 2
+  libraries:
+  - httpx
+  - duckdb
+  - tenacity
+  pitfalls: CORE `fullText` quality is uneven (it's PDF-extracted, sometimes column-scrambled). Heavy
+    duplication — the same paper appears from 5 repositories; dedupe on DOI then on normalized title.
+    The free-tier rate limit is the hard bottleneck; plan on the dump. Licences are heterogeneous per
+    data provider — carry `dataProviders` through so you can filter redistributable text later.
+- name: Unpaywall — OA location resolution by DOI
+  what: '`GET https://api.unpaywall.org/v2/{DOI}?email=you@example.com`. Returns `is_oa`, `oa_status`
+    (gold|green|hybrid|bronze|closed), `best_oa_location{url, url_for_pdf, version, license, host_type,
+    repository_institution}`, `oa_locations[]` (all known copies), `journal_is_oa`, `has_repository_copy`.'
+  why: This is the step that converts 'I have a DOI' into 'I have a legally-downloadable PDF URL'. It
+    resolves green-OA repository copies that Crossref and the publisher site will not give you, which
+    roughly doubles the number of PDFs you can actually obtain.
+  how: 'Single DOI: the URL above. Email param is mandatory and is the only auth. Rate limit: 100,000
+    calls/day, and be gentle (~10/s). For bulk, use the free monthly Unpaywall data snapshot (JSONL.gz,
+    ~150M DOIs, ~30GB compressed) from unpaywall.org/products/snapshot — load into DuckDB and join against
+    your OpenAlex/Crossref DOI list offline. This is the right move for a project of your scale.
+
+    Resolution order for getting a PDF, in priority: (1) OpenAlex `best_oa_location.pdf_url`; (2) Unpaywall
+    `best_oa_location.url_for_pdf`; (3) Unpaywall `oa_locations[]` filtered to `host_type==''repository''`
+    (green copies survive longer); (4) CORE `downloadUrl`; (5) Europe PMC / PMC OA tar.gz; (6) arXiv/EarthArXiv.
+    Deduplicate by SHA-256 of the fetched bytes.
+
+    Always record which location you used and its `license` string in your provenance table.'
+  confidence: confirmed
+  priority: 2
+  libraries:
+  - unpywall
+  - httpx
+  - duckdb
+  pitfalls: '`bronze` OA means free-to-read but NO reuse licence — you can read/mine it but may not redistribute
+    the text or figures; treat bronze and closed as ''extract numbers, never republish the figure''. `url_for_pdf`
+    is null even when `is_oa` is true, quite often. Some repository URLs are HTML splash pages; validate
+    the Content-Type is application/pdf and the first bytes are `%PDF`.'
+- name: 'Preprint servers: arXiv, bioRxiv/medRxiv, EarthArXiv, OSF Preprints, agriRxiv'
+  what: 'arXiv: http://export.arxiv.org/api/query (Atom XML) plus the full-text bulk sets `s3://arxiv/pdf/`
+    and `s3://arxiv/src/` (requester-pays) and the Kaggle arXiv metadata dump. bioRxiv/medRxiv: https://api.biorxiv.org/details/{server}/{interval}/{cursor}/{format}
+    and /pubs/{server}/... . EarthArXiv: now on CDL Janeway (eartharxiv.org) — earlier content was on
+    OSF, reachable via https://api.osf.io/v2/preprints/?filter[provider]=eartharxiv. OSF: https://api.osf.io/v2/
+    (preprints, nodes, files). agriRxiv: hosted by CABI.'
+  why: EarthArXiv and agriRxiv are where soil physics / irrigation preprints land, and preprint PDFs are
+    unambiguously fetchable and usually LaTeX-sourced — meaning their figures are VECTOR PDFs, which is
+    the case where you get exact data with zero digitization error.
+  how: 'arXiv: `http://export.arxiv.org/api/query?search_query=all:%22soil+moisture%22+AND+all:%22irrigation%22&start=0&max_results=100&sortBy=submittedDate`.
+    Field prefixes: ti:, au:, abs:, cat:, all:. Boolean AND/OR/ANDNOT. Paging via `start`/`max_results`
+    (max 2000 per call, 30000 total recommended ceiling). Rate limit: one request every 3 seconds, single
+    connection — this is in the Terms of Use; violate it and you get blocked. Use `arxiv` (python) which
+    enforces the delay. Relevant categories: physics.ao-ph, physics.geo-ph, stat.AP, cs.LG, eess.SP.
+
+    For arXiv figures, download the SOURCE tarball (`https://arxiv.org/e-print/{id}`), not the PDF — it
+    contains the original .eps/.pdf/.png figures AND frequently the raw .dat/.csv files the authors plotted
+    from. That is a direct data source, not a digitization problem.
+
+    bioRxiv/medRxiv: `https://api.biorxiv.org/details/biorxiv/2015-01-01/2026-09-22/0/json` — 30 records
+    per page, increment cursor by 100 per the docs'' pagination (`cursor` is the offset). No search parameter
+    — you must harvest the date range and filter locally. Also `https://api.biorxiv.org/covid19/...` and
+    `/pubs/biorxiv/...` for preprint→published links.
+
+    OSF: `https://api.osf.io/v2/preprints/?filter[provider]=eartharxiv&filter[date_published][gte]=2015-01-01&page[size]=100`,
+    JSON:API paging via `links.next`. Files under `/v2/preprints/{id}/files/osfstorage/`. Rate limit 100
+    req/hour anonymous, much higher with a Personal Access Token in `Authorization: Bearer`.'
+  confidence: confirmed
+  priority: 3
+  libraries:
+  - arxiv
+  - httpx
+  - feedparser
+  - osfclient
+  - boto3
+  pitfalls: 'arXiv''s 3-second rule is enforced by IP ban, not 429. bioRxiv has no query endpoint — you
+    will harvest ~300k records to filter locally; budget a day. EarthArXiv''s migration off OSF means
+    the OSF route only covers pre-migration content; you need the Janeway OAI-PMH endpoint for recent
+    items (verify: likely https://eartharxiv.org/api/oai or /oai).'
+- name: DOAJ, BASE, OAI-PMH harvesting, and the commercial indexes (Scopus/WoS/Dimensions)
+  what: 'DOAJ: https://doaj.org/api/v4/search/articles/{query} and /search/journals/{query}, plus full
+    metadata dumps. BASE (Bielefeld Academic Search Engine, 400M+ docs): https://api.base-search.net/cgi-bin/BaseHttpSearchInterface.fcgi
+    — requires IP whitelisting via a free application. Scopus: https://api.elsevier.com/content/search/scopus
+    (X-ELS-APIKey header). Web of Science: https://api.clarivate.com/apis/wos-starter/v1/documents and
+    the Expanded API. Dimensions: https://app.dimensions.ai/api/dsl.json with the DSL query language.'
+  why: DOAJ and BASE extend recall into non-English and regional agronomy journals (Chinese, Indian, Iranian,
+    Turkish, Brazilian irrigation literature is a large and underused pool of irrigated-field soil moisture
+    figures). Scopus/WoS/Dimensions have the best subject indexing but are licence-gated — worth using
+    for a curated gold-standard seed set even if you can't bulk-harvest.
+  how: 'DOAJ: `GET https://doaj.org/api/v4/search/articles/bibjson.title%3A%22soil%20moisture%22?page=1&pageSize=100`.
+    Elasticsearch query_string over `bibjson.*` fields. No key needed for search; be polite (~1 req/s).
+    Full dump available as tar.gz.
+
+    BASE: apply at base-search.net/about/en/faq_data.php for interface access (free for research, IP-bound).
+    Returns Solr-style responses; `func=PerformSearch&query=<solr>&hits=100&offset=0`. Excellent for grey
+    literature and theses.
+
+    OAI-PMH direct harvest: for specific high-yield repositories run `?verb=ListRecords&metadataPrefix=oai_dc&set=<set>&from=<date>`
+    with `sickle` or `oaipmh-scythe`. High-yield targets for you: USDA-ARS (naldc.nal.usda.gov), CGIAR
+    CGSpace (cgspace.cgiar.org/oai/request), K-State/Nebraska/Texas A&M/UC Davis IRs, ICARDA, IWMI, FAO
+    AGRIS (agris.fao.org — has its own API and is the single most agriculture-specific index in existence;
+    search it).
+
+    Scopus: institutional subscription required; `view=COMPLETE` needs an entitled key; text-mining requires
+    an Elsevier TDM agreement and must run from a subscribing institution''s IP. WoS Starter API gives
+    limited fields on a free tier (~5 req/s, 5,000 records/day). Dimensions offers free access for non-commercial
+    academic research on application — its DSL is powerful: `search publications for "soil moisture irrigation"
+    where year in [1995:2026] return publications[doi+title+year]`.
+
+    LICENCE WARNING: Scopus/WoS/Dimensions terms forbid redistributing their metadata. Use them to VALIDATE
+    recall of your open queries (compute what fraction of a Scopus result set your OpenAlex query recovered)
+    and to seed, not as the corpus of record.'
+  confidence: confirmed
+  priority: 4
+  libraries:
+  - httpx
+  - sickle
+  - oaipmh-scythe
+  - pybliometrics
+  - dimcli
+  pitfalls: BASE access is IP-bound and will silently fail from a cloud VM. AGRIS is the highest-value
+    index for agronomy and is routinely forgotten. Scopus TDM from a non-institutional IP is a contract
+    breach — don't. Non-English papers need translated query blocks (see the search-strategy entry).
+- name: Data-repository APIs — where the actual numbers already live
+  what: 'Zenodo: https://zenodo.org/api/records?q=... Dryad: https://datadryad.org/api/v2/search?q= and
+    /api/v2/datasets/{encoded_doi}/download. Figshare: https://api.figshare.com/v2/articles/search (POST).
+    OSF: https://api.osf.io/v2/nodes/?filter[tags]=. PANGAEA: https://www.pangaea.de/advanced/search.php?q=&format=json
+    plus per-dataset tab-delimited download at https://doi.pangaea.de/10.1594/PANGAEA.{id}?format=textfile.
+    Mendeley Data: https://api.datasearch.elsevier.com/api/v2/search?query= . Ag Data Commons: CKAN API
+    at https://agdatacommons.nal.usda.gov/api/3/action/package_search?q= (note: migrated to a Figshare-backed
+    platform — also try https://api.figshare.com/v2/ with the USDA institution filter). DataCite: https://api.datacite.org/dois?query=.'
+  why: Before digitizing a figure, check whether the authors deposited the numbers. A single Zenodo/Dryad
+    hit replaces hundreds of digitized points with exact values. DataCite is the meta-index across all
+    of them and also gives you `relatedIdentifiers` linking a dataset DOI to the paper DOI — that is the
+    join key between your literature corpus and the deposited data.
+  how: 'DataCite first (it federates the rest): `GET https://api.datacite.org/dois?query=(titles.title:("soil
+    moisture" OR "soil water content") AND (descriptions.description:irrigation OR subjects.subject:irrigation))&resource-type-id=dataset&page[size]=1000&page[cursor]=1`.
+    Paging: `page[number]`/`page[size]` (max 1000/page, 10,000 total) or cursor-based via `page[cursor]=1`
+    then follow `links.next` — use cursor. Elasticsearch query_string syntax over the DataCite schema.
+    Pull `relatedIdentifiers` where `relationType` in {IsSupplementTo, IsSourceOf, IsCitedBy} and `relatedIdentifierType
+    == DOI` to link dataset↔article.
+
+    Zenodo: `GET https://zenodo.org/api/records?q=%22soil+moisture%22+AND+irrigation&type=dataset&size=100&page=1&sort=mostrecent`,
+    optional `access_token=` (personal token from your Zenodo account; pass as `Authorization: Bearer`
+    header, which the Zenodo devs now prefer over the query param). RATE LIMIT CHANGED: since Nov 2025
+    the search endpoints are capped at 30 requests/minute for anonymous AND authenticated users — throttle
+    to 1 req per 2s. File list is in `files[]` with `links.self` download URLs; `metadata.license.id`
+    gives reuse terms.
+
+    Dryad: `GET https://datadryad.org/api/v2/search?q=soil+moisture+irrigation&page=1&per_page=100`. Datasets
+    identified by DOI; download the whole package at `/api/v2/datasets/{urlencoded DOI}/download` (a ZIP).
+    Public reads need no token; tokens (OAuth client credentials) expire quickly. Dryad content is CC0
+    by policy — fully reusable, which makes it your best-licensed source.
+
+    Figshare: `POST https://api.figshare.com/v2/articles/search` body `{"search_for":"soil moisture irrigation","item_type":3,"page_size":1000,"page":1}`
+    (item_type 3 = dataset). No hard rate limit documented but keep to ≤1 req/s. Files at `/v2/articles/{id}/files`.
+
+    PANGAEA: use the `pangaeapy` client — `pangaeapy.PanDataSet(doi_or_id)` returns `.data` as a pandas
+    DataFrame with per-column parameter metadata (name, unit, PI, method) and `.geometryextent` for coordinates.
+    Search via https://www.pangaea.de/advanced/search.php?q=<q>&count=500&format=json. Data are tab-delimited
+    .tab with a metadata header; licences are mostly CC-BY.
+
+    Ag Data Commons: try CKAN `?q=soil+moisture&rows=1000&start=0&fq=res_format:CSV` first; if the CKAN
+    endpoint 404s post-migration, fall back to Figshare''s API scoped to the USDA institution (`https://api.figshare.com/v2/institutions/.../articles`).
+    USDA-ARS deposits here include multi-year irrigated-field neutron-probe and TDR profiles — high value,
+    verify the current endpoint.
+
+    Mendeley Data: `GET https://api.datasearch.elsevier.com/api/v2/search?query=soil+moisture+irrigation&limit=100&offset=0`
+    with `X-ELS-APIKey` header.'
+  confidence: confirmed
+  priority: 1
+  libraries:
+  - pangaeapy
+  - requests
+  - httpx
+  - zenodo-get
+  - ckanapi
+  - pandas
+  pitfalls: Zenodo's new 30 req/min cap will throttle a naive crawler to a crawl — batch and cache. Dryad
+    tokens expire in ~10 minutes. Ag Data Commons moved platforms; the old CKAN URL may be dead — verify
+    before coding against it. DataCite `query` is Elasticsearch syntax and silently returns everything
+    if your syntax is wrong (always sanity-check `meta.total`). Many 'datasets' are just a PDF of the
+    paper — check `files[].type` before downloading GBs.
+- name: Google Scholar — use only as a recall audit, never as a crawler
+  what: 'No official API exists. Options: `scholarly` (Python, scrapes; supports free proxies/ScraperAPI/Luminati),
+    SerpApi''s Google Scholar engine (paid, ~$50/5k searches, they take on the scraping), Publish or Perish
+    (desktop GUI, manual export), SerpHouse/ScrapingBee/Scrapfly (paid proxies).'
+  why: Scholar has the best recall for grey literature and old scanned agronomy papers, but scraping it
+    breaches Google's ToS (automated access is expressly prohibited) and Google enforces with CAPTCHAs
+    and IP bans. For a project you intend to publish and share, do not build the pipeline on it.
+  how: 'Recommended use: take a random sample of 100 Scholar results for your core query (manually or
+    via Publish or Perish export), then compute what fraction your OpenAlex/CORE/Europe PMC union recovers.
+    That gives you a defensible recall estimate for the methods section without a scraping dependency.
+    If you need programmatic access, buy SerpApi (`https://serpapi.com/search?engine=google_scholar&q=...&api_key=...&start=0&num=20`)
+    — the legal exposure moves to them, output is clean JSON with `result_id`, `title`, `link`, `publication_info`,
+    `inline_links.cited_by.total`, and `resources[].file_format==''PDF''`. If you use `scholarly`, throttle
+    to <1 request/20s, rotate residential proxies, and accept it will break.
+
+    Better free substitutes with real APIs: OpenAlex + Semantic Scholar (covers most of Scholar''s index),
+    CORE + BASE (grey literature), AGRIS (agriculture-specific), Lens.org (free scholarly API on application,
+    https://api.lens.org/scholarly/search, POST with a JSON query DSL and Bearer token — genuinely good
+    and often overlooked).'
+  confidence: confirmed
+  priority: 5
+  libraries:
+  - scholarly
+  - serpapi
+  - pyalex
+  pitfalls: Scholar scraping from a datacenter IP gets CAPTCHA'd within ~20 queries. `scholarly`'s free-proxy
+    mode is unreliable. Don't put Scholar-scraped data in a published dataset.
+- name: Grobid — PDF to structured TEI XML with bounding-box coordinates
+  what: 'Java service, run via Docker: `docker run --rm -p 8070:8070 lfoppiano/grobid:0.8.1` (full image;
+    `grobid-crf` variant is lighter/CPU-only, the deep-learning image needs a GPU). REST at http://localhost:8070/api/.
+    Services: /processFulltextDocument, /processHeaderDocument, /processReferences, /processCitationList,
+    /processFulltextAssetDocument (returns a ZIP with TEI + extracted figure/table asset images).'
+  why: Grobid is the only free tool that gives you TEI with PAGE COORDINATES for `<figure>` elements.
+    Those coordinates are what let you crop the exact figure bitmap out of the PDF page and, critically,
+    let you locate the corresponding VECTOR drawing objects on that page for exact extraction. It also
+    gives you clean section segmentation (Methods vs Results) and a parsed bibliography for citation-graph
+    snowballing.
+  how: '`curl -v --form input=@paper.pdf --form consolidateHeader=1 --form consolidateCitations=0 --form
+    teiCoordinates=figure --form teiCoordinates=table --form teiCoordinates=persName --form teiCoordinates=biblStruct
+    --form segmentSentences=1 http://localhost:8070/api/processFulltextDocument`
+
+    The `coords` attribute format is `page,x,y,w,h` in PDF user-space points (possibly several semicolon-separated
+    boxes per element). Convert to a PyMuPDF rect and render: `page.get_pixmap(clip=fitz.Rect(x, y, x+w,
+    y+h), dpi=600)`. Render at 400–600 DPI — digitization error scales inversely with pixel density and
+    this single choice is worth more accuracy than most algorithm tuning.
+
+    Use `/processFulltextAssetDocument` to get the embedded raster images as separate files in one ZIP.
+
+    Python client: `grobid-client-python` (`grobid_client.process("processFulltextDocument", input_dir,
+    output_dir, n=10, tei_coordinates=True, segment_sentences=True)`); it parallelizes across the service''s
+    worker pool. Set `concurrency` to about the number of CPU cores of the container; Grobid handles ~1-5
+    PDFs/s/core for the CRF models.
+
+    Parse TEI with `lxml` under namespace `{http://www.tei-c.org/ns/1.0}`. Figure record: `//tei:figure`
+    → `tei:head` (label, e.g. ''Figure 3''), `tei:figDesc` (caption text), `@coords`, and `@type=''table''`
+    distinguishes tables.'
+  confidence: confirmed
+  priority: 1
+  libraries:
+  - grobid-client-python
+  - lxml
+  - pymupdf
+  - docker
+  pitfalls: Grobid's figure coordinates sometimes bound only the caption, not the graphic — always union
+    the caption box with the nearest large image/drawing cluster on the same page. The deep-learning image
+    is ~10GB. Two-column layouts with figures spanning columns occasionally get split into two `<figure>`
+    elements — merge figures whose captions share the same label. Grobid does not extract figure content,
+    only its box.
+- name: PDF text, table and image extraction stack
+  what: 'Text/layout: PyMuPDF (`fitz`), pdfplumber, pdfminer.six, pypdfium2. Tables: camelot (lattice
+    + stream), tabula-py (Java/tabula), pdfplumber''s `extract_tables`, and the layout models below. Layout/VLM
+    parsers: Grobid (above), Nougat (facebook/nougat-base, academic PDF→Markdown incl. LaTeX math), marker
+    (datalab-to/marker), docling (IBM, DoclingDocument JSON with figure/table objects), unstructured (typed
+    elements: Title/NarrativeText/Table/Image), MinerU, Nemotron Parse. Images: `page.get_images(full=True)`
+    + `doc.extract_image(xref)`, and `page.get_text(''dict'')` for spans with bboxes.'
+  why: Most of the soil moisture numbers that AREN'T in figures are in tables (seasonal mean VWC by depth
+    and treatment) and in methods prose (depths, sensor model, plot coordinates, soil texture). You need
+    all three channels — figure digitization alone will miss the metadata that makes a data point usable.
+  how: 'Practical order of operations per PDF:
+
+    1. `doc = fitz.open(path)`; if `len(page.get_text().strip()) < 100` for most pages, it''s a scan →
+    route to OCR (ocrmypdf --force-ocr, or PaddleOCR/Surya) before anything else.
+
+    2. Text + layout: `page.get_text(''dict'')` gives blocks→lines→spans each with `bbox`, `font`, `size`,
+    `color`. Use font size/weight to find captions (captions are typically 1-2pt smaller than body and
+    start with `^(Fig(ure)?|Table)\s*\.?\s*(\d+|[IVX]+)`).
+
+    3. Tables: try camelot `flavor=''lattice''` first (works when the table has ruling lines — common
+    in agronomy journals), fall back to `flavor=''stream''` with `table_areas` set from a detected table
+    bbox, and cross-check against pdfplumber''s `extract_tables(table_settings={''vertical_strategy'':''text'',''horizontal_strategy'':''lines''})`.
+    Accept a table only if ≥2 parsers agree on the shape, else flag for VLM re-read.
+
+    4. High-value fallback: run `docling` (`DocumentConverter().convert(path).document`) — it emits a
+    `DoclingDocument` with `pictures[]` (each with `get_image(doc)` and provenance bbox) and `tables[]`
+    (as DataFrames), which is the cleanest single-call way to get caption-associated figure crops. `marker`
+    is faster; `Nougat` is best on math-heavy arXiv PDFs but hallucinates on tables and has a repetition-loop
+    failure mode.
+
+    5. Raster images: `for xref, *_ in page.get_images(full=True): img = doc.extract_image(xref)` gives
+    `image` bytes, `width`, `height`, `colorspace`, `smask`. IMPORTANT: check the native resolution —
+    `width/rect_width_in_inches` gives the effective DPI. If native DPI > render DPI, use the embedded
+    image directly rather than re-rasterizing the page.
+
+    6. Caption→figure association algorithm: for each caption span with a `Fig N` prefix, find the candidate
+    graphic (embedded image bbox, or a cluster from `page.cluster_drawings()`) that (a) is on the same
+    page, (b) horizontally overlaps the caption by >50% of the narrower width, (c) is ABOVE the caption
+    (journals put figure captions below; table captions above — flip the rule for tables), and (d) minimizes
+    vertical gap. Score = `1.0*horizontal_IoU - 0.01*vertical_gap_pt`, take the argmax, require gap <
+    120 pt. Handle multi-panel by taking the union bbox of all candidates satisfying (a)-(c) within the
+    gap threshold, then splitting into panels later.
+
+    7. Panel splitting: on the figure crop, compute row and column projection profiles of ''non-background''
+    pixels (`np.mean(gray < 250, axis=0/1)`); find maximal runs where the profile is 0 (pure whitespace)
+    that are wider than ~3% of the image; cut there recursively (guillotine split). Validate each sub-panel
+    by checking it contains ≥2 long straight lines (axes). Label panels by OCRing the top-left 15% of
+    each sub-panel for `^\(?[a-hA-H]\)?$`.'
+  confidence: confirmed
+  priority: 1
+  libraries:
+  - pymupdf
+  - pdfplumber
+  - pdfminer.six
+  - camelot-py[cv]
+  - tabula-py
+  - docling
+  - marker-pdf
+  - unstructured[pdf]
+  - nougat-ocr
+  - ocrmypdf
+  - opencv-python
+  - numpy
+  pitfalls: PyMuPDF is AGPL — if you ever distribute the pipeline commercially you need a licence (pypdfium2
+    is Apache/BSD and a drop-in for rendering). `page.get_images()` misses figures drawn as vectors entirely
+    — that's why the vector path below exists. Camelot's stream mode invents columns on multi-line cells.
+    Nougat can enter infinite repetition on tables; cap generation length and detect n-gram repeats. Elsevier
+    PDFs often embed figures as a single flattened JPEG at 150 DPI even when the source was vector.
+- name: 'VECTOR-FIRST extraction: read exact coordinates from PDF drawing operators'
+  what: Pull the literal path geometry the publisher's typesetter emitted — `page.get_drawings()` / `page.get_cdrawings()`
+    in PyMuPDF — and invert the axis transform to recover the authors' original numbers with ZERO digitization
+    error.
+  why: This is the highest-value technique in the entire pipeline and almost nobody does it. A matplotlib/R/SigmaPlot/Origin
+    figure placed into a PDF as vector art still contains every data point as an explicit path coordinate.
+    When it works you get machine-precision values, not ±2% digitized estimates. For arXiv/EarthArXiv/Copernicus/MDPI/Frontiers/PLOS
+    PDFs (LaTeX or modern XML workflows) a large fraction of figures are vector. ALWAYS try this before
+    touching a pixel.
+  how: "Algorithm:\n1. `paths = page.get_drawings()` (or `page.get_cdrawings()` for the faster raw-dict\
+    \ variant, ~5-10x quicker on figure-dense pages). Each path dict has: `items` (list of drawing commands),\
+    \ `type` ('s' stroke, 'f' fill, 'fs' both), `color` (stroke RGB tuple 0-1), `fill` (fill RGB), `width`\
+    \ (line width pt), `dashes` (string like '[3 3] 0'), `rect` (bbox), `closePath`, `even_odd`, `seqno`\
+    \ (drawing order), `layer`, and with `extended=True` also clip-group info.\n2. Each item is a tuple:\
+    \ `('l', Point p1, Point p2)` line, `('c', p1, p2, p3, p4)` cubic Bezier, `('re', Rect, orientation)`\
+    \ rectangle, `('qu', Quad)` quad. Flatten Beziers by evaluating B(t) at t=0,0.1,...,1 — but for data\
+    \ curves publishers almost always emit pure `'l'` polylines, so a Bezier-heavy path is usually a logo\
+    \ or an arrow, not data.\n3. Restrict to the figure: keep paths whose `rect` is inside the Grobid/docling\
+    \ figure bbox. Use `page.cluster_drawings()` to group.\n4. FIND THE AXES: the plot frame is the long\
+    \ axis-aligned strokes. Collect all items that are `'l'` with p1.y≈p2.y (horizontal) or p1.x≈p2.x\
+    \ (vertical) and length > 40% of the figure width/height. The axis rectangle is also often available\
+    \ directly as the clip rect of the data paths (with `extended=True`, `path['scissor']`). Ticks are\
+    \ short strokes (length 2-8 pt) perpendicular to and touching an axis line.\n5. CALIBRATE WITHOUT\
+    \ OCR — this is the magic: `page.get_text('dict', clip=figure_rect)` gives every tick LABEL as a text\
+    \ span with its exact bbox and its exact string. No OCR, no error. Match each tick mark's along-axis\
+    \ coordinate to the nearest label span centre (within ~15 pt perpendicular distance, on the outside\
+    \ of the axis). Parse the label to a float (handle '0.10', '10^{-2}' rendered as separate spans, thousands\
+    \ separators, dates like '15-Jun' or DOY). Fit the transform by least squares over ≥3 ticks:\n   linear:\
+    \  x_data = a*u_pt + b   (solve via np.polyfit degree 1; require R² > 0.9999)\n   log10:   log10(x_data)\
+    \ = a*u_pt + b\n   Detect log automatically: fit both; if the log fit's R² beats the linear fit's,\
+    \ and the tick label sequence is 1,10,100 or 1,2,5,10, declare log.\n   PDF y grows upward, PyMuPDF\
+    \ y grows downward — apply `page.transformation_matrix` or just let the least-squares fit absorb the\
+    \ sign.\n6. IDENTIFY DATA SERIES: group remaining paths by the tuple `(round(color,3), round(fill,3),\
+    \ round(width,2), dashes)`. Each distinct style = one series. Map style→label by locating the legend:\
+    \ the legend is a cluster of short line segments / small filled shapes each paired with a nearby text\
+    \ span; match each legend swatch's style tuple to a series and take the text span to its right (within\
+    \ 40 pt, vertically centred) as the series label.\n7. EMIT POINTS: for a line series, concatenate\
+    \ the ordered `p1,p2` endpoints of its `'l'` items (dedupe consecutive duplicates), apply the transform,\
+    \ sort by x. For a marker/scatter series, markers are many small paths with near-identical `rect`\
+    \ width/height — take each path's `rect` centre. For error bars, they appear as a separate style (thin\
+    \ strokes with caps); pair each with the nearest marker centre and record the half-length as the uncertainty.\n\
+    8. Set `extraction_method='vector_exact'` and `sigma_y = 0` (report instead the PDF coordinate quantization,\
+    \ ~1e-3 pt, i.e. negligible) — but STILL run the physical sanity checks.\n\nFallbacks in the vector\
+    \ family: `page.get_svg_image()` → parse with `svgelements`/`svgpathtools` (useful when a figure is\
+    \ an embedded SVG-ish Form XObject); `pdfminer.six`'s `LTCurve`/`LTLine` objects; `pdf2svg` + `lxml`.\n\
+    Detection heuristic for 'is this figure vector?': count drawing items inside the figure bbox. `len(items)\
+    \ > 50` and no embedded raster covering the bbox ⇒ vector. `len(items) < 10` and a big embedded image\
+    \ ⇒ raster, go to the digitization pipeline."
+  confidence: confirmed
+  priority: 1
+  libraries:
+  - pymupdf
+  - numpy
+  - scipy
+  - svgelements
+  - svgpathtools
+  - pdfminer.six
+  - shapely
+  pitfalls: (1) `get_cdrawings()` returns raw tuples/dicts rather than Point/Rect objects — faster but
+    you index by position; verify the exact shape against your installed PyMuPDF version. (2) Figures
+    inside Form XObjects carry their own CTM; PyMuPDF flattens it but pdfminer does not. (3) Some publishers
+    (Elsevier ScienceDirect, Wiley) FLATTEN vector figures to 150-300 DPI JPEGs during production — the
+    accepted manuscript or the arXiv/repository green-OA copy often still has vector, so try all OA locations
+    before giving up. (4) Clipped paths extend beyond the visible axes; intersect every point with the
+    clip/axis rect or you'll emit off-chart garbage. (5) Filled-area plots and shaded confidence bands
+    are single closed paths — split them into upper and lower boundaries at the leftmost/rightmost x.
+    (6) A dashed line arrives as MANY short separate paths sharing one style — concatenate before ordering
+    by x.
+- name: Raster plot digitization — axis frame and tick detection
+  what: Given a figure bitmap (ideally 400-600 DPI), locate the plot frame, the tick marks, and the tick
+    label text so you can build the pixel→data transform.
+  why: Everything downstream is meaningless if the affine transform is wrong. A 1% error in the axis calibration
+    is a systematic bias across every point from that figure, which is far more damaging to your ML training
+    set than random tracing noise.
+  how: "Step 1 — preprocess: convert to grayscale; if the background is off-white, estimate it as the\
+    \ modal pixel value and normalize. Binarize non-background: `mask = (rgb.astype(int).max(2) - rgb.astype(int).min(2)\
+    \ > 20) | (gray < 245)`. Deskew: run `cv2.HoughLinesP`, take the modal angle of near-horizontal lines,\
+    \ and `cv2.warpAffine` by its negative if |angle| > 0.2°.\n\nStep 2 — plot frame by projection profiles\
+    \ (more robust than Hough for clean plots):\n`col_sum = mask.sum(axis=0); row_sum = mask.sum(axis=1)`\n\
+    Axis lines are the columns/rows where the sum exceeds ~0.6 * (image height/width). Take the leftmost\
+    \ such column as the y-axis (u_axis), the bottom-most such row as the x-axis (v_axis); if a full box\
+    \ frame exists you also get right/top. If no single column passes, lower to 0.4 and take the two strongest\
+    \ peaks separated by >50% of the width.\nCross-check with `cv2.HoughLinesP(edges, rho=1, theta=np.pi/360,\
+    \ threshold=int(0.5*min(H,W)), minLineLength=int(0.5*min(H,W)), maxLineGap=5)` filtered to |dx|<2\
+    \ or |dy|<2.\n\nStep 3 — tick marks: on the x-axis, look in the band `v_axis+1 : v_axis+12` and compute\
+    \ a column-wise sum; local maxima above 3 px tall, separated by ≥8 px, are ticks. Same on the y-axis\
+    \ in `u_axis-12 : u_axis-1`. Record tick pixel positions `u_t[i]`, `v_t[j]`. If no tick marks are\
+    \ drawn (common in some styles), fall back to using the centroids of the tick LABELS themselves as\
+    \ the anchor positions.\n\nStep 4 — tick labels by OCR: crop below the x-axis (`v_axis+2 : v_axis+0.12*H`,\
+    \ full width) and left of the y-axis (`0 : u_axis-2`, full height). For the y-axis, rotate the crop\
+    \ 90° if the labels are vertical. Run OCR with a numeric-restricted config first:\n`pytesseract.image_to_data(crop,\
+    \ config='--psm 11 -c tessedit_char_whitelist=0123456789.,-–−+eE×x^%/', output_type=Output.DICT)`\
+    \ — psm 11 (sparse text) or psm 6. Upscale the crop 3-4x with `cv2.INTER_CUBIC` before OCR; small-font\
+    \ tick labels are the #1 OCR failure and upscaling fixes most of it.\nRun a second engine and require\
+    \ agreement: `easyocr.Reader(['en']).readtext(crop, allowlist='0123456789.-')` or `paddleocr.PaddleOCR(lang='en').ocr(crop)`.\
+    \ PaddleOCR (PP-OCRv4/v5) is generally the most accurate on small scientific text; EasyOCR is easiest\
+    \ to install; Tesseract is fastest. Accept a label only if ≥2 of 3 engines produce the same parsed\
+    \ float, else mark the figure for human/VLM review.\nNormalize OCR quirks: unicode minus '−'→'-',\
+    \ 'O'→'0', 'l'/'I'→'1', 'S'→'5', ',' as decimal separator (European papers!) vs thousands separator\
+    \ — decide by whether the sequence is monotone after each interpretation.\nDate axes: parse with `dateutil.parser`\
+    \ plus explicit patterns for DOY (1-366 integers with an axis title containing 'DOY'/'day of year'/'Julian'),\
+    \ 'Jun-15', '15/06/2018', 'MMM' month abbreviations; convert to days since epoch for the linear fit.\n\
+    \nStep 5 — build the transform. With tick pixel positions `u_i` and parsed values `x_i` (need ≥2,\
+    \ prefer ≥3):\n  linear: solve `[x] = A·u + B` by `np.polyfit(u, x, 1)`; compute residual RMS. REQUIRE\
+    \ the ticks to be evenly spaced in pixel space for a linear axis (`std(diff(u))/mean(diff(u)) < 0.02`)\
+    \ — if they're evenly spaced but the VALUES are 1,10,100, it's log.\n  log: `np.polyfit(u, np.log10(x),\
+    \ 1)`, then `x = 10**(A*u+B)`.\n  Pick whichever gives lower residual; require R² ≥ 0.999 else reject\
+    \ the figure.\n  Full 2D form (handles residual rotation/shear): fit an affine `[x,y,1]ᵀ = M·[u,v,1]ᵀ`\
+    \ by least squares from ≥3 non-collinear calibration points (`cv2.estimateAffine2D` or `np.linalg.lstsq`);\
+    \ use a homography (`cv2.findHomography`) only for photographed/perspective-distorted figures.\n\n\
+    Step 6 — axis TITLES and UNITS: OCR the region below the x tick labels and left of the y tick labels\
+    \ (rotate 90° CW for the y title). Regex the units: `(m3\\s*m-3|m³/m³|cm3\\s*cm-3|%|v/v|mm|kPa|MPa|cm)`.\
+    \ This is what lets you normalize θ later. If the y title matches soil-moisture vocabulary and the\
+    \ range is 0-0.6, you have VWC in m³/m³; if 0-60, it's volumetric percent; if 0-0.4 with 'g/g', it's\
+    \ gravimetric."
+  confidence: recalled
+  priority: 1
+  libraries:
+  - opencv-python
+  - numpy
+  - scipy
+  - pytesseract
+  - easyocr
+  - paddleocr
+  - scikit-image
+  - python-dateutil
+  - Pillow
+  pitfalls: Broken axes (a zigzag break symbol) destroy the affine fit — detect by looking for the '//'
+    or '≈' glyph on an axis or by non-uniform tick spacing with uniform tick values, and reject or split
+    the axis into two segments. Secondary (right-hand) y-axes are extremely common in soil-moisture-plus-rainfall
+    plots — ALWAYS check for a right axis with its own ticks/labels, and map each series to the correct
+    axis using the legend or the colour of the axis label. Inverted y-axes (depth plots) fit fine but
+    produce negative slope; don't 'fix' the sign. Gridlines get mistaken for axis lines — axis lines are
+    darker and touch the frame corners; filter by requiring the line to reach both ends of the plot area
+    and be the extremal one.
+- name: Raster plot digitization — series separation and curve tracing
+  what: Turn the pixels inside the plot frame into per-series (u, v) pixel traces, then into data values.
+  why: This is the actual data extraction. Soil-moisture figures are typically 2-6 series (depths or treatments)
+    of VWC vs time, often overlapping, often with markers, often with a rainfall bar chart on a secondary
+    axis. Getting series separation right is what determines whether you harvest usable multi-depth training
+    data or noise.
+  how: 'A. Build the interior mask: crop to the axis rectangle inset by the line width; remove the frame,
+    gridlines and any in-plot text/legend box (detect text via a connected-component filter: components
+    with 6<h<30 px and aspect 0.2<w/h<3 clustered into rows → text; or run OCR and blank its boxes).
+
+
+    B. COLOUR CLUSTERING (primary method for colour figures):
+
+    1. Convert to CIELAB: `lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB).astype(np.float32); lab[...,0]*=100/255;
+    lab[...,1:]-=128`.
+
+    2. Take only foreground pixels (not background, not black/gray frame): keep pixels where chroma `sqrt(a²+b²)
+    > 12` OR `L < 60` (to keep black series).
+
+    3. Cluster with k-means where k = (number of legend entries) if the legend was parsed, else choose
+    k by running k=2..8 and taking the largest k whose minimum inter-centroid ΔE00 > 15. Use `sklearn.cluster.MiniBatchKMeans`
+    on a 20k-pixel random subsample for speed, then assign all pixels to the nearest centroid.
+
+    4. Better than k-means when the legend IS parsed: for each legend swatch colour `c_k`, assign pixel
+    p to series k iff `deltaE_ciede2000(lab_p, c_k) < 12` and k = argmin. Use `skimage.color.deltaE_ciede2000`.
+    Threshold 10-15 works for distinct palettes; drop to 8 if two series are similar hues. Leave unassigned
+    pixels (anti-aliased edges, overlaps) as ''ambiguous''.
+
+    5. GRAYSCALE FIGURES (very common in older agronomy papers): colour is useless. Separate by LINE STYLE
+    instead — for each connected component run a dash-pattern analysis along the traced path (run-length
+    encode ink/gap along arc length; cluster by (mean dash length, mean gap length, line width)). Solid/dashed/dotted/dash-dot
+    become the series key. Match to the legend by running the same run-length analysis on the legend swatches.
+    Separate marker series by marker SHAPE via template matching of the legend marker glyph (`cv2.matchTemplate`
+    with TM_CCOEFF_NORMED, threshold 0.7, then non-max suppression at a radius of the marker size) or
+    by Hu moments of each small connected component.
+
+
+    C. LINE TRACING (per series mask):
+
+    - Per-x-column extraction (the WebPlotDigitizer ''X Step with interpolation'' approach): for each
+    pixel column u in the plot area, take the set of foreground rows `V_u` for that series. If `len(V_u)==0`,
+    mark as a gap. If the run of rows is contiguous and its height ≤ 2.5*line_width, emit the MEDIAN (not
+    mean — median is robust to an intersecting series). If the run splits into multiple disjoint groups
+    (the curve doubles back, or two branches of the same series overlap), emit the group nearest to the
+    previous column''s value (continuity tracking) and record the others as a branch-ambiguity flag.
+
+    - Averaging-window approach (WPD''s default, good for noisy/anti-aliased scans): slide a Δu × Δv window
+    (start Δu = 2*line_width, Δv = 5*line_width) and emit the intensity-weighted centroid of foreground
+    pixels in each window; step Δu/2.
+
+    - Connected-components sanity: `cv2.connectedComponentsWithStats(series_mask)` — discard components
+    with area < 20 px or bbox diagonal < 10 px (these are legend remnants and JPEG artefacts).
+
+    - Skeletonize for topologically messy curves: `skimage.morphology.skeletonize(mask)` then walk the
+    skeleton graph with `sknw.build_sknw` — useful for hysteresis loops / retention curves that are not
+    functions of x.
+
+
+    D. MARKER / SCATTER EXTRACTION (soil moisture series are usually markers, not lines):
+
+    - `cv2.SimpleBlobDetector` with params: `filterByArea=True, minArea=(0.5*expected_marker_px)**2, maxArea=(2*expected)**2,
+    filterByCircularity=True, minCircularity=0.5, filterByConvexity=True, minConvexity=0.7, filterByInertia=True,
+    minInertiaRatio=0.3, blobColor` set per series mask.
+
+    - Or template matching using the legend''s marker glyph as the template (best when markers overlap
+    the line).
+
+    - Or `cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp=1, minDist=0.8*marker_d, param1=100, param2=12,
+    minRadius=int(0.4*marker_d/2), maxRadius=int(1.6*marker_d/2))` for filled circles only.
+
+    - Estimate `expected_marker_px` from the legend swatch size.
+
+    - De-overlap: if two markers of the SAME series merge into one blob of ~2x area, split with a distance-transform
+    watershed (`cv2.distanceTransform` → `skimage.segmentation.watershed`).
+
+
+    E. OVERLAPPING SERIES: where two series cross, pixels are ambiguous. Resolve by (i) drawing order
+    — in a PDF the later-drawn series occludes; (ii) continuity — extrapolate each series linearly from
+    the last 5 clean columns and assign the crossing pixels to whichever prediction is nearest; (iii)
+    simply mark the crossing region as a gap and interpolate, flagging those points with `quality=''interpolated_crossing''`.
+    For your purposes, dropping 3 points at a crossing is far better than emitting 3 wrong ones.
+
+
+    F. ERROR BARS: detect as thin vertical strokes centred on a marker x with horizontal caps. For each
+    marker, search the column band `[u_m-1, u_m+1]` for contiguous foreground extending above/below the
+    marker; the extents give `y_upper`, `y_lower`. Record as `err_low`, `err_high` in data units. Do NOT
+    let the error bar contaminate the marker centroid — exclude the 1-2 px wide central column when computing
+    the marker centre, or use the template-matched centre.
+
+
+    G. SUB-PIXEL REFINEMENT: for each emitted point, take the local intensity profile perpendicular to
+    the curve (or the marker''s local window) and compute the intensity-weighted centroid `v* = Σ(w_i·v_i)/Σw_i`
+    with `w_i = 1 - gray_i/255` (i.e. ''inkiness''), over a window of ±1.5*line_width. This routinely
+    gives ~0.2 px precision versus 0.5 px for nearest-pixel. Alternatively fit a 1-D Gaussian to the profile
+    and take the mean. WPD''s improved averaging window does exactly this.
+
+
+    H. RESAMPLING: convert to data units, sort by x, drop non-monotone duplicates (for a time series keep
+    the median y per unique x), then resample onto a fixed grid with a SHAPE-PRESERVING interpolator —
+    `scipy.interpolate.PchipInterpolator` (monotone cubic, no overshoot) rather than `CubicSpline` (which
+    invents oscillation and can push VWC negative). Never extrapolate beyond the traced x-range; set NaN
+    outside. For soil moisture time series, resample to daily (or the native measurement interval implied
+    by the marker spacing) and record `n_native_points` vs `n_resampled` so a model can down-weight interpolated
+    values.'
+  confidence: recalled
+  priority: 1
+  libraries:
+  - opencv-python
+  - scikit-image
+  - scikit-learn
+  - numpy
+  - scipy
+  - sknw
+  - colormath
+  pitfalls: JPEG compression smears colours — always widen the ΔE threshold for JPEG figures and prefer
+    PNG/TIFF sources (PMC OA tar.gz gives originals). Anti-aliasing creates a halo of intermediate colours
+    that k-means will happily turn into a phantom series — set k from the legend count, never trust automatic
+    k. Rainfall/irrigation bar charts on a secondary axis share the plot area and will be picked up as
+    a series — detect bars (tall thin rectangles anchored at the top or bottom axis) and exclude them,
+    or extract them separately as the irrigation forcing (which you actually want!). Shaded confidence
+    bands swamp colour clustering — detect large filled regions by area and handle their boundaries separately.
+    Dotted lines fail per-column extraction (most columns empty) — dilate the mask by the dot spacing
+    before tracing, then erode the result.
+- name: ML chart-derendering models as a second opinion / hard-case solver
+  what: 'Pretrained models that map a chart image directly to structured data. Ranked for this use case:
+    LineFormer (instance segmentation for multi-line charts, github.com/TheJaeLal/LineFormer, ICDAR 2023,
+    SOTA on line charts — this is the right primary ML model for soil-moisture-vs-time plots); LineEX
+    (WACV 2023, keypoint+transformer for scientific line charts); ChartOCR (Microsoft, WACV 2021, hourglass
+    keypoint net + rule-based, handles bar/line/pie); ChartDETR (multi-shape DETR, F1 0.98 on Adobe Synthetic,
+    0.97 on ExcelChart400k); SpaDen (sparse+dense keypoints); Chart-RCNN; DePlot (google/deplot on HF,
+    plot→linearized table, built on Pix2Struct); UniChart (vis-nlp/UniChart, chart-pretrained Donut);
+    ChartGemma (ahmed-masry/chartgemma, PaliGemma-based, instruction-tuned directly on chart images);
+    MatCha. Benchmarks/datasets to fine-tune on: ChartQA, PlotQA, ExcelChart400k, Adobe Synthetic, ICPR
+    CHART-Infographics competition data, LineEX''s synthetic set.'
+  why: Rule-based digitization breaks on the messy 20% (grayscale, overlapping, hand-drawn, scanned).
+    LineFormer in particular treats each line as an instance mask, which solves the overlapping-series
+    problem that per-column median cannot. Running two independent methods and requiring agreement is
+    also your best automated quality gate.
+  how: 'Architecture: run the deterministic pipeline (vector → raster CV) AND LineFormer on every figure.
+    LineFormer takes an image and returns, per detected line instance, an ordered list of pixel points;
+    you still supply the axis transform from your own calibration (its released code includes a basic
+    axis module but yours will be better). Compare the two outputs after transforming to data units: compute
+    per-series DTW distance or mean |Δy| normalized by the y-axis range. If the normalized disagreement
+    < 2%, accept with `confidence=''high''`; 2-10% → `confidence=''medium''`, route to VLM adjudication;
+    >10% → reject to human review.
+
+    Installation reality: LineFormer is built on mmdetection (mmcv) — pin `mmcv-full`/`mmdet` versions
+    carefully, it is the fiddliest install in this stack. Budget a day.
+
+    DePlot/UniChart/ChartGemma via `transformers`: `Pix2StructForConditionalGeneration.from_pretrained(''google/deplot'')`
+    + `Pix2StructProcessor`, prompt `''Generate underlying data table of the figure below:''`. These output
+    a TEXT TABLE — good for getting series names and rough magnitudes, NOT for dense time series (they
+    emit only ~5-20 rows and will hallucinate values). Use them for metadata (series labels, axis titles,
+    chart type classification), not for the numbers.
+
+    Chart-type classification gate: before digitizing, classify the figure as {line, scatter, bar, box,
+    contour/heatmap, map, photo, schematic, table-image}. Fine-tune a small ConvNeXt/ViT on a few thousand
+    labelled crops, or zero-shot with a VLM. Only line/scatter/bar go into digitization; this saves enormous
+    compute since most figures in an agronomy paper are photos, maps and schematics.'
+  confidence: confirmed
+  priority: 2
+  libraries:
+  - torch
+  - transformers
+  - mmdet
+  - mmcv
+  - timm
+  - ultralytics
+  - opencv-python
+  pitfalls: LineFormer's released weights are trained mostly on synthetic and web charts — expect a domain
+    gap on journal figures; plan to fine-tune on ~500 of your own hand-digitized soil-moisture figures
+    (use WebPlotDigitizer to make the labels). DePlot-family models hallucinate plausible-looking numbers
+    with total confidence — never use their output as ground truth. ChartOCR's original code depends on
+    the Microsoft OCR API; substitute PaddleOCR. Most of these models assume a single panel — split panels
+    first.
+- name: Vision-language model as digitizer and as validator
+  what: Use a multimodal LLM (Claude with vision, GPT-4o/5-class, Gemini) either to read values directly
+    off a figure or, better, to audit a deterministic extraction. Recent literature (PlotExtract, 2025
+    multimodal-LLM plot-extraction studies) shows self-verification — compare the extracted numbers back
+    against the source image — materially improves reliability.
+  why: VLMs are excellent at the things CV is bad at (reading a messy legend, understanding 'solid line
+    = 10 cm depth, dashed = 30 cm', spotting that the y-axis is in percent not m³/m³, noticing a secondary
+    axis, identifying which panel is which treatment) and bad at the thing CV is good at (precise coordinates).
+    Use each for its strength.
+  how: "ROLE 1 — METADATA EXTRACTION (high value, high reliability). Send the figure image + its caption\
+    \ + the paper's methods section, and request strict JSON:\n```\nYou are extracting metadata from a\
+    \ scientific figure. Return ONLY JSON matching this schema:\n{ \"chart_type\": \"line|scatter|bar|box|other\"\
+    ,\n  \"n_panels\": int, \"panel_labels\": [str],\n  \"x_axis\": {\"title\": str, \"unit\": str, \"\
+    type\": \"time|numeric|category\", \"min\": num, \"max\": num, \"scale\": \"linear|log\"},\n  \"y_axis_left\"\
+    :  {\"title\": str, \"unit\": str, \"min\": num, \"max\": num, \"scale\": \"linear|log\", \"inverted\"\
+    : bool},\n  \"y_axis_right\": {...}|null,\n  \"series\": [{\"label\": str, \"color_description\":\
+    \ str, \"marker\": str, \"linestyle\": str,\n              \"axis\": \"left|right\",\n           \
+    \   \"soil_depth_cm\": [num,num]|null,   // parsed from the label, e.g. \"0-30 cm\" -> [0,30]\n  \
+    \            \"irrigation_treatment\": str|null, \"crop\": str|null}],\n  \"moisture_variable\": \"\
+    VWC|gravimetric|storage_mm|matric_potential|relative|other\",\n  \"moisture_unit_normalized\": \"\
+    m3/m3|g/g|mm|kPa|%\",\n  \"is_soil_moisture_figure\": bool,\n  \"confidence\": 0..1,\n  \"notes\"\
+    : str }\nIf a field is not visible in the image or stated in the caption, use null. Do NOT guess numeric\
+    \ data values.\n```\nSet temperature 0, use JSON/structured-output mode, and validate against a Pydantic\
+    \ model. This single call is what converts a raw digitized curve into a LABELLED training row (depth,\
+    \ treatment, units) — without it the numbers are useless.\n\nROLE 2 — VALIDATOR (recommended over\
+    \ VLM-as-digitizer). Give the model the original figure AND a re-rendered plot of your extracted series\
+    \ (matplotlib, same axis limits, same colours, transparent overlay or side-by-side), and ask:\n```\n\
+    Image 1 is a figure from a paper. Image 2 is a reconstruction from automatically extracted data.\n\
+    For EACH series, answer: does the reconstruction match in shape, level, and x-extent?\nReturn JSON:\
+    \ {\"series\": [{\"label\":str, \"match\": \"good|minor_offset|wrong_shape|missing|spurious\",\n \
+    \ \"estimated_max_abs_error_in_y_units\": num, \"comment\": str}], \"overall_accept\": bool}\n```\n\
+    This catches the systematic failures (wrong axis calibration, swapped series, a factor-of-10 unit\
+    \ error) that no internal CV metric detects. Also cheap: one call per figure.\n\nROLE 3 — SPOT DIGITIZER\
+    \ for figures the CV pipeline rejects. Ask for a small number of anchor readings, not a dense series:\
+    \ 'Read the value of the <label> series at x = 10, 20, 30, ... Return JSON [{x, y}]'. Then use those\
+    \ anchors to CORRECT the CV trace (fit a 1-parameter offset/scale) rather than replacing it. Never\
+    \ ask a VLM for 100 dense points — accuracy collapses and it interpolates smoothly over real structure.\n\
+    \nROLE 4 — TRIAGE. Cheap first-pass classification over every extracted figure: 'Is this a plot of\
+    \ soil water content / soil moisture / soil water potential against time or depth, measured in a field?\
+    \ yes/no + one-line reason.' Run the cheapest vision model available; this prunes 90%+ of figures\
+    \ before expensive processing.\n\nENGINEERING: batch with the provider's batch API for cost; cache\
+    \ by figure SHA-256; always log the model ID and prompt hash in provenance so results are reproducible;\
+    \ run the validator with a different model family than the digitizer where possible (independent errors)."
+  confidence: recalled
+  priority: 1
+  libraries:
+  - anthropic
+  - pydantic
+  - instructor
+  - matplotlib
+  - pillow
+  pitfalls: 'VLMs confidently fabricate numeric values — a reported 93% ''accuracy'' on chart QA does
+    not mean 93% of digitized points are within tolerance. Never let a VLM produce the primary numeric
+    series without a deterministic cross-check. They also systematically misread log axes and inverted
+    (depth) axes. Cost: at ~100k figures, even $0.003/call is $300 per pass — put the cheap triage classifier
+    first. Always pass the caption text; it carries the depth/treatment information the image alone lacks.'
+- name: Uncertainty quantification for every digitized value
+  what: Propagate pixel-level resolution, line-width, calibration and interpolation error into a per-point
+    σ, stored alongside every extracted (x, y).
+  why: Your ML model will be trained on a mixture of exact vector data, good digitizations and marginal
+    ones. Without a per-point σ you cannot weight the loss, cannot filter, and cannot honestly report
+    dataset quality. This is also what makes the dataset publishable.
+  how: "Define the local data-units-per-pixel scale from the fitted transform:\n  linear: `s_y = dy/dv\
+    \ = A_y` (data units per pixel); log: `s_y(v) = ln(10)*A_y*y` (scale depends on value).\nComponents\
+    \ (all in data units):\n1. Quantization / centroid error: with sub-pixel centroiding, σ_pix ≈ 0.3\
+    \ px; without it, σ_pix = 1/sqrt(12) ≈ 0.29 px for pure rounding but realistically 0.5 px. Contribution\
+    \ `σ_1 = |s_y| * σ_pix`.\n2. Line/marker width: a stroke of width w px gives an intrinsic ambiguity;\
+    \ treating it as uniform over the stroke, `σ_2 = |s_y| * w / sqrt(12)`. For markers of diameter d,\
+    \ `σ_2 = |s_y| * d / sqrt(12)` unless you template-matched the centre (then use d/6).\n3. Axis calibration\
+    \ error: from the least-squares fit of x_i = A·u_i + B, the covariance of (A,B) is `σ_res² (UᵀU)⁻¹`\
+    \ where U is the design matrix and σ_res the residual std of the tick fit. The prediction variance\
+    \ at pixel v is `var_cal(v) = σ_res² * (1/n + (v - v̄)²/Σ(v_i-v̄)²)`. Take `σ_3 = sqrt(var_cal(v))`.\n\
+    4. Interpolation/resampling: for a point produced by PCHIP between native points spaced Δx apart,\
+    \ add `σ_4 = 0.5 * |dy/dx| * Δx_local` (linear-interpolation error bound), and set a boolean `is_interpolated`.\n\
+    5. Rendering: if the figure was rasterized from a lossy JPEG, multiply σ_1+σ_2 by 1.5.\nTotal: `σ_y\
+    \ = sqrt(σ_1² + σ_2² + σ_3² + σ_4²)`; same construction for σ_x.\nSanity anchor: a typical 600-DPI\
+    \ crop of a 3-inch-tall panel spanning 0-0.5 m³/m³ gives s_y ≈ 0.5/1800 ≈ 2.8e-4 m³/m³ per pixel;\
+    \ with a 3-px line, σ_y ≈ 3e-4 to 5e-4 m³/m³ — i.e. digitization noise is an order of magnitude below\
+    \ sensor noise (±0.02-0.03 m³/m³ for uncalibrated FDR). At 150 DPI it's ~1.1e-3, still fine. THIS\
+    \ IS THE KEY RESULT: careful digitization is not the limiting error source; axis mis-calibration and\
+    \ unit errors are. Spend your effort there.\nFor vector extractions set `extraction_method='vector_exact'`,\
+    \ σ_1=σ_2=0, keep σ_3 (the tick-label fit is still a fit, though with exact text positions σ_res is\
+    \ ~1e-3 pt → negligible) and σ_4.\nValidate the whole σ model empirically: hand-digitize 50 figures\
+    \ for which you ALSO have the authors' deposited data (find them via DataCite relatedIdentifiers),\
+    \ compute actual errors, and check that ~68% fall inside ±1σ. Report the calibration curve."
+  confidence: recalled
+  priority: 2
+  libraries:
+  - numpy
+  - scipy
+  - uncertainties
+  pitfalls: Don't forget σ_x for time axes — a 2-px x error on a 200-day axis is ~0.5 days, which matters
+    if you're aligning to daily weather. Log-axis σ is multiplicative, not additive; store it as a relative
+    σ. The dominant real-world error is not any of these — it is picking the wrong axis (secondary axis)
+    or the wrong units; those are caught by the physical-range checks, not by σ.
+- name: High-recall boolean query bank for irrigated multi-depth soil moisture
+  what: A set of composable concept blocks (moisture, irrigation, depth, sensor, crop, texture, data-availability)
+    plus ready-to-run strings in OpenAlex, Europe PMC, Scopus/WoS, CORE/Elasticsearch and Semantic Scholar
+    syntaxes.
+  why: Recall is the binding constraint on dataset size. Field terminology is wildly inconsistent — the
+    same measurement is called soil moisture, SWC, VWC, θv, soil water storage, profile available water,
+    and soil water depletion depending on the sub-discipline. Missing a synonym costs you thousands of
+    papers.
+  how: "BLOCK M (moisture): \"soil moisture\" OR \"soil water content\" OR \"soil water contents\" OR\
+    \ \"volumetric water content\" OR \"volumetric soil water content\" OR \"volumetric moisture content\"\
+    \ OR \"gravimetric water content\" OR \"gravimetric soil moisture\" OR \"soil water storage\" OR \"\
+    profile water content\" OR \"profile soil water\" OR \"root zone soil moisture\" OR \"root-zone water\
+    \ content\" OR \"available soil water\" OR \"plant available water\" OR \"soil water depletion\" OR\
+    \ \"soil moisture content\" OR \"soil moisture dynamics\" OR \"soil water dynamics\" OR \"soil water\
+    \ balance\" OR \"soil water regime\" OR \"soil matric potential\" OR \"soil water potential\" OR \"\
+    matric suction\" OR \"soil water tension\" OR \"water table depth\" OR VWC OR SWC OR GWC OR \"theta\
+    \ v\" OR \"θv\"\n\nBLOCK I (irrigation): irrigation OR irrigated OR irrigate OR irrigating OR \"drip\
+    \ irrigation\" OR \"trickle irrigation\" OR \"subsurface drip irrigation\" OR SDI OR \"surface drip\"\
+    \ OR \"micro-irrigation\" OR microirrigation OR \"sprinkler irrigation\" OR \"center pivot\" OR \"\
+    centre pivot\" OR \"linear move\" OR \"lateral move\" OR LEPA OR LESA OR MESA OR \"furrow irrigation\"\
+    \ OR \"flood irrigation\" OR \"border irrigation\" OR \"basin irrigation\" OR \"surge irrigation\"\
+    \ OR \"deficit irrigation\" OR \"regulated deficit irrigation\" OR RDI OR \"partial root zone drying\"\
+    \ OR PRD OR \"supplemental irrigation\" OR fertigation OR \"irrigation scheduling\" OR \"irrigation\
+    \ management\" OR \"alternate wetting and drying\" OR \"variable rate irrigation\" OR VRI OR \"water\
+    \ application\" OR \"irrigation treatment\"\n\nBLOCK D (depth / multi-depth): \"soil depth\" OR \"\
+    soil depths\" OR \"soil profile\" OR \"soil layers\" OR \"depth increments\" OR \"multi-depth\" OR\
+    \ \"multiple depths\" OR \"depth-wise\" OR \"vertical distribution\" OR \"root zone\" OR \"0-30 cm\"\
+    \ OR \"0-60 cm\" OR \"0-90 cm\" OR \"0-120 cm\" OR \"30-60 cm\" OR \"60-90 cm\" OR \"90-120 cm\" OR\
+    \ \"10 cm depth\" OR \"20 cm depth\" OR \"30 cm depth\" OR \"0.3 m\" OR \"0.6 m\" OR \"1.2 m\" OR\
+    \ \"topsoil and subsoil\"\n\nBLOCK S (sensors / instrumentation): TDR OR \"time domain reflectometry\"\
+    \ OR \"time-domain reflectometry\" OR TDT OR FDR OR \"frequency domain reflectometry\" OR \"capacitance\
+    \ probe\" OR \"capacitance sensor\" OR \"neutron probe\" OR \"neutron moisture meter\" OR \"neutron\
+    \ scattering\" OR CPN OR \"503 hydroprobe\" OR CS616 OR CS625 OR CS650 OR CS655 OR TDR100 OR TDR200\
+    \ OR TDR310 OR TDR315 OR TDR315H OR \"Sentek\" OR EnviroSCAN OR \"Diviner 2000\" OR \"Drill and Drop\"\
+    \ OR \"Delta-T\" OR ThetaProbe OR ML2x OR ML3 OR PR2 OR \"Decagon\" OR \"METER Group\" OR \"5TE\"\
+    \ OR \"5TM\" OR \"EC-5\" OR \"GS1\" OR \"GS3\" OR \"TEROS 10\" OR \"TEROS 11\" OR \"TEROS 12\" OR\
+    \ \"TEROS 21\" OR \"MPS-6\" OR \"Hydra Probe\" OR \"Stevens Hydra\" OR \"Acclima\" OR \"SDI-12\" OR\
+    \ Watermark OR \"granular matrix sensor\" OR \"gypsum block\" OR tensiometer OR \"heat pulse\" OR\
+    \ \"dual probe heat pulse\" OR \"cosmic ray neutron\" OR COSMOS OR CRNS OR \"GPR\" OR \"electromagnetic\
+    \ induction\" OR EM38 OR \"soil core\" OR \"gravimetric sampling\" OR \"oven dry\" OR CR1000 OR CR1000X\
+    \ OR CR3000 OR CR300 OR CR800 OR CR10X OR CR23X OR \"Campbell Scientific\" OR datalogger OR \"data\
+    \ logger\" OR AM16/32\n\nBLOCK C (crops): maize OR corn OR wheat OR \"winter wheat\" OR \"spring wheat\"\
+    \ OR soybean OR soya OR cotton OR rice OR \"paddy\" OR sorghum OR millet OR barley OR oat OR canola\
+    \ OR rapeseed OR sunflower OR potato OR \"sugar beet\" OR sugarcane OR alfalfa OR lucerne OR \"forage\"\
+    \ OR peanut OR groundnut OR chickpea OR lentil OR tomato OR onion OR pepper OR cucumber OR lettuce\
+    \ OR melon OR watermelon OR grape OR vineyard OR almond OR pistachio OR walnut OR citrus OR orange\
+    \ OR apple OR olive OR banana OR coffee OR tea OR turfgrass OR \"cover crop\"\n\nBLOCK T (soil texture\
+    \ covariates): \"soil texture\" OR \"particle size distribution\" OR \"sand content\" OR \"silt content\"\
+    \ OR \"clay content\" OR \"sandy loam\" OR \"silt loam\" OR \"silty clay loam\" OR \"clay loam\" OR\
+    \ \"loamy sand\" OR \"bulk density\" OR \"field capacity\" OR \"permanent wilting point\" OR \"water\
+    \ retention curve\" OR \"soil hydraulic properties\" OR \"saturated hydraulic conductivity\" OR \"\
+    organic matter content\" OR \"electrical conductivity\" OR salinity OR \"USDA texture\"\n\nBLOCK A\
+    \ (data availability, for a high-precision sub-query): \"data availability statement\" OR \"supplementary\
+    \ data\" OR \"supporting information\" OR \"supplementary material\" OR \"available at Zenodo\" OR\
+    \ \"deposited in Dryad\" OR figshare OR \"10.5061\" OR \"10.5281\" OR \"available upon request\"\n\
+    \nBLOCK F (figure-caption targeted — highest precision for digitization targets): \"Soil water content\"\
+    \ AND (\"during the growing season\" OR \"as affected by irrigation\" OR \"at different depths\" OR\
+    \ \"measured and simulated\" OR \"observed and simulated\")\n\nCOMPOSITION TIERS:\n  T1 (core, high\
+    \ precision): (M) AND (I) AND (D)\n  T2 (broad recall): (M) AND (I)\n  T3 (instrument-anchored, best\
+    \ yield of real time series): (M) AND (I) AND (S)\n  T4 (ML-ready, has covariates): (M) AND (I) AND\
+    \ (T)\n  T5 (figure-targeted): field-restricted to figure captions where supported (Europe PMC `FIG:`)\n\
+    \nCONCRETE STRINGS:\nOpenAlex (no wildcards, uppercase booleans):\n`https://api.openalex.org/works?api_key=KEY&filter=title_and_abstract.search:(\"\
+    soil moisture\" OR \"soil water content\" OR \"volumetric water content\" OR \"soil water storage\"\
+    ) AND (irrigation OR irrigated OR \"drip irrigation\" OR \"center pivot\" OR sprinkler OR furrow OR\
+    \ \"deficit irrigation\"),publication_year:1990-2026,type:article&per_page=200&cursor=*&select=id,doi,title,publication_year,best_oa_location,locations,open_access,abstract_inverted_index,authorships,topics`\n\
+    \nEurope PMC:\n`(ABSTRACT:(\"soil moisture\" OR \"soil water content\" OR \"volumetric water content\"\
+    ) OR TITLE:(\"soil moisture\" OR \"soil water content\")) AND (FULL_TEXT:(\"drip irrigation\" OR \"\
+    center pivot\" OR \"sprinkler irrigation\" OR \"furrow irrigation\" OR \"deficit irrigation\" OR irrigated))\
+    \ AND (FULL_TEXT:(TDR OR \"neutron probe\" OR \"capacitance probe\" OR CS616 OR EnviroSCAN OR Watermark))\
+    \ AND OPEN_ACCESS:Y AND PUB_YEAR:[1990 TO 2026]`\nFigure-only variant: `FIG:(\"soil water content\"\
+    \ OR \"soil moisture\") AND FULL_TEXT:(irrigated OR \"drip irrigation\")`\n\nScopus (TITLE-ABS-KEY,\
+    \ supports * wildcard):\n`TITLE-ABS-KEY((\"soil moistur*\" OR \"soil water content\" OR \"volumetric\
+    \ water content\" OR \"soil water storage\" OR \"profile water content\") AND (irrigat* OR \"drip\"\
+    \ OR \"sprinkler\" OR \"center pivot\" OR \"furrow\" OR \"deficit irrigation\") AND (depth* OR profile\
+    \ OR layer*)) AND PUBYEAR > 1989 AND (LIMIT-TO(DOCTYPE,\"ar\"))`\n\nWeb of Science:\n`TS=((\"soil\
+    \ moistur*\" OR \"soil water content\" OR \"volumetric water content\") AND (irrigat* OR drip OR sprinkler\
+    \ OR \"center pivot\" OR furrow) AND (TDR OR \"neutron probe\" OR capacitance OR \"time domain reflectometry\"\
+    ))`\n\nCORE / Elasticsearch:\n`(title:(\"soil moisture\" OR \"soil water content\") OR abstract:(\"\
+    volumetric water content\")) AND fullText:(\"drip irrigation\" OR \"center pivot\" OR \"furrow irrigation\"\
+    ) AND yearPublished:[1990 TO 2026] AND _exists_:fullText`\n\nSemantic Scholar bulk (`+`=AND, `|`=OR,\
+    \ `-`=NOT, `*`=prefix):\n`query=(\"soil moisture\"|\"soil water content\"|\"volumetric water content\"\
+    )+(irrigation|irrigated|\"drip irrigation\"|\"center pivot\")&year=1990-2026&openAccessPdf&fields=title,abstract,externalIds,openAccessPdf,year,venue`\n\
+    \nNON-ENGLISH BLOCKS (big recall win — China, India, Iran, Turkey, Brazil, Spain dominate irrigation\
+    \ research):\n  zh: 土壤水分 OR 土壤含水量 OR 体积含水率 OR 灌溉 OR 滴灌 OR 喷灌 OR 沟灌 OR 亏缺灌溉\n  es: \"humedad del suelo\"\
+    \ OR \"contenido de agua del suelo\" OR \"contenido volumétrico de agua\" OR riego OR \"riego por\
+    \ goteo\" OR \"riego por aspersión\" OR \"riego deficitario\"\n  pt: \"umidade do solo\" OR \"teor\
+    \ de água no solo\" OR irrigação OR \"irrigação por gotejamento\"\n  fr: \"humidité du sol\" OR \"\
+    teneur en eau du sol\" OR irrigation OR \"goutte à goutte\"\n  fa: رطوبت خاک OR آبیاری قطره‌ای\n \
+    \ tr: \"toprak nemi\" OR sulama OR \"damla sulama\"\n  ru: \"влажность почвы\" OR орошение OR \"капельное\
+    \ орошение\"\nRun these against OpenAlex (multilingual titles/abstracts), CORE, BASE and AGRIS.\n\n\
+    SNOWBALLING (do this after the first harvest — typically +30-50% recall): for every ACCEPTED paper,\
+    \ pull `referenced_works` and `cited_by_api_url` from OpenAlex (and /references, /citations from Semantic\
+    \ Scholar) and re-screen. Iterate 2 generations. Also seed from the reference lists of existing soil-moisture\
+    \ meta-analyses and from the reference lists of the ISMN/FLUXNET/SoilKsatDB/AMMA-CATCH/TAHMO data\
+    \ papers.\n\nSCREENING CASCADE (cheap→expensive): (1) regex/keyword on title+abstract; (2) a fine-tuned\
+    \ SciBERT/SPECTER2 binary relevance classifier trained on ~1,000 hand-labelled abstracts (target recall\
+    \ ≥0.98 at whatever precision that costs — recall matters more, you filter later); (3) full-text regex\
+    \ for depth patterns `\\b(\\d{1,3})\\s*[-–—to]\\s*(\\d{1,3})\\s*cm\\b` and sensor names; (4) figure-caption\
+    \ regex; (5) VLM triage on candidate figures. Record the screening decision and score at every stage."
+  confidence: recalled
+  priority: 1
+  libraries:
+  - pyalex
+  - httpx
+  - transformers
+  - sentence-transformers
+  - rapidfuzz
+  - regex
+  - langdetect
+  pitfalls: '''SWC'' also means ''soil water characteristic'' and ''stem water content''; ''SDI'' also
+    means ''standardized drought index'' — always require a co-occurring irrigation term. ''Moisture''
+    alone pulls in grain moisture and building science. OpenAlex has no wildcards so `irrigat*` silently
+    matches nothing — enumerate. Scopus/WoS strings are NOT portable to OpenAlex. Pre-2000 agronomy papers
+    are scanned images with no text layer and will be invisible to abstract search — reach them via cited-reference
+    snowballing from modern papers.'
+- name: Provenance schema — one row per extracted point, fully traceable
+  what: A normalized relational/Parquet schema that records where every single number came from, how it
+    was obtained, and how much to trust it.
+  why: You are building a dataset from hundreds of thousands of heterogeneous sources. Without per-point
+    provenance you cannot reproduce, cannot retract a bad paper's contribution, cannot compute per-source
+    weights, cannot answer a reviewer, and cannot publish the dataset. Build this FIRST, before any extraction
+    code.
+  how: 'Five tables (Parquet on disk, DuckDB or Postgres for queries):
+
+
+    `paper` — paper_uid (ULID), doi_normalized (lowercase, no ''https://doi.org/''), openalex_id, pmid,
+    pmcid, s2_corpusid, arxiv_id, title, title_normalized, year, journal, issn, publisher, license, oa_status,
+    source_api, source_url, pdf_sha256, pdf_path, retrieved_at, is_retracted, retraction_doi.
+
+
+    `site` — site_uid, paper_uid, site_name_in_paper, lat, lon, coord_source (''stated''|''geocoded_from_placename''|''digitized_from_map''|''unknown''),
+    coord_precision_km, elevation_m, country, admin1, years_covered, soil_series, soil_texture_class,
+    sand_pct, silt_pct, clay_pct, texture_source (''measured_in_paper''|''soilgrids''|''ssurgo''|''unknown''),
+    bulk_density_g_cm3, om_pct, ec_dS_m, field_capacity, wilting_point, climate_koppen, crop, cultivar,
+    planting_date, harvest_date, irrigation_system (''drip''|''sdi''|''sprinkler''|''center_pivot''|''furrow''|''flood''|''none''),
+    irrigation_amount_mm, irrigation_schedule_json, treatment_label, replicate.
+
+
+    `figure` — figure_uid, paper_uid, figure_label (''Figure 3''), panel_label (''a''), page_number, bbox_pdf
+    (x,y,w,h), caption_text, image_sha256, image_path, image_dpi, is_vector, chart_type, x_axis_json (title/unit/type/min/max/scale),
+    y_axis_json, y2_axis_json, calibration_json (tick pixel positions, parsed values, fitted A/B, residual_rms,
+    r2), n_series_detected, n_series_in_legend, panel_split_method.
+
+
+    `series` — series_uid, figure_uid | table_uid | dataset_uid, series_label_raw, series_label_normalized,
+    color_rgb, marker, linestyle, axis_side, depth_top_cm, depth_bottom_cm, depth_source (''series_label''|''caption''|''panel_label''|''methods_text''|''vlm_inferred''),
+    variable (''vwc''|''gwc''|''storage_mm''|''matric_potential_kPa''|''relative_water_content''|''saturation''),
+    unit_raw, unit_normalized, unit_conversion_factor, treatment_link (→site_uid).
+
+
+    `observation` — obs_uid, series_uid, x_raw, x_unit, timestamp_utc (nullable, derived), doy, depth_cm
+    (for depth-profile plots where depth is an axis), y_value, y_unit_normalized (''m3/m3''), sigma_y,
+    sigma_x, err_low, err_high, is_interpolated, extraction_method (''vector_exact''|''raster_cv''|''lineformer''|''vlm_anchor''|''table_parse''|''supplementary_file''|''repository_dataset''),
+    extraction_tool_version, pixel_u, pixel_v, quality_flags (bitmask), reviewed_by_human (bool), review_notes.
+
+
+    QUALITY FLAG BITMASK (keep every flag, never silently drop a point): 1=out_of_physical_range, 2=axis_fit_poor(R²<0.999),
+    4=ocr_disagreement, 8=series_crossing_ambiguous, 16=interpolated, 32=extrapolated_beyond_axis, 64=secondary_axis_uncertain,
+    128=unit_inferred_not_stated, 256=depth_inferred_not_stated, 512=cv_vs_ml_disagreement>2%, 1024=vlm_validator_flagged,
+    2048=duplicate_of_other_series, 4096=low_dpi_source(<200), 8192=jpeg_artifacts, 16384=grayscale_series_separation,
+    32768=no_coordinates_for_site.
+
+
+    Hash everything: `image_sha256` and `pdf_sha256` make the whole pipeline idempotent and re-runnable,
+    and let you detect when a publisher silently changes a PDF.
+
+    Store the extraction code version and a config hash on every row (`extraction_tool_version = ''smlit-0.4.2+cfg:ab12cd''`)
+    so you can re-run only the rows produced by a buggy version.
+
+    Emit the whole thing with a Croissant / DCAT-AP metadata record and mint a DOI (Zenodo) per release;
+    include per-paper licence so downstream users know what they may redistribute.'
+  confidence: recalled
+  priority: 1
+  libraries:
+  - duckdb
+  - pyarrow
+  - pandas
+  - pydantic
+  - sqlalchemy
+  - ulid-py
+  pitfalls: 'Do not normalize units in place — keep `y_value` raw with `unit_raw` AND a derived normalized
+    column; unit conversion bugs are the most common silent corruption and you must be able to re-derive.
+    Depth is the field most often missing and most often wrong — it is frequently only in the caption
+    or the series label, sometimes only in the methods text, so record `depth_source` and never guess
+    silently. Timestamps: many figures have DOY-only x-axes; you must recover the year from the methods
+    text, and papers with multi-year panels often repeat DOY 1-365 per panel.'
+- name: Deduplication across papers, versions, figures and datasets
+  what: Collapse the same study appearing as preprint + accepted manuscript + version of record + repository
+    copy + conference paper, and collapse the same figure/dataset appearing in multiple papers.
+  why: Left unchecked, duplicates inflate the dataset, leak between train and test splits (the same field-season
+    appearing in both), and bias the ML model toward heavily-republished studies. Train/test leakage via
+    duplicated field-seasons is the single most likely way this project produces an over-optimistic accuracy
+    number.
+  how: 'LEVEL 1 — identifier: normalize DOI (`re.sub(r''^https?://(dx\.)?doi\.org/'', '''', doi).lower().strip()`),
+    then union-find on {doi, pmid, pmcid, arxiv_id, openalex_id}. OpenAlex already merges preprint↔published
+    into one Work with multiple `locations` — trust its `id` as the primary cluster key, and use Crossref
+    `relation.is-preprint-of` / `has-preprint` as a second edge source.
+
+    LEVEL 2 — fuzzy bibliographic: normalize title (lowercase, strip punctuation, collapse whitespace,
+    remove a leading ''the/a''), then block on (first author surname, publication year ±1) and match within
+    blocks using `rapidfuzz.fuzz.token_set_ratio >= 92`. Scale with MinHashLSH (`datasketch`, 128 perms,
+    threshold 0.85) over 5-character shingles of title+first-200-chars-of-abstract to get candidate pairs
+    in O(n).
+
+    LEVEL 3 — embedding: SPECTER2 (`allenai/specter2_base`) embeddings of title+abstract; cosine > 0.98
+    within the same year flags near-duplicates (also catches translated republications, which are common
+    in Chinese/Spanish agronomy).
+
+    LEVEL 4 — FIGURE-level: perceptual hash of every extracted figure (`imagehash.phash(img, hash_size=16)`);
+    Hamming distance ≤ 8 ⇒ same figure. This catches the very common case of the same field experiment
+    being plotted in a thesis chapter, a conference paper and a journal article. Also compare after resizing
+    to a canonical 512px and converting to grayscale, so colour-recoloured reuse is caught.
+
+    LEVEL 5 — DATA-level (the one that actually matters for ML): two series are duplicates if they refer
+    to the same (site, year, depth, treatment) AND their resampled y-vectors agree. Compute: resample
+    both to a common daily grid over the overlap, require overlap ≥ 30 days, then flag as duplicate if
+    `RMSE < 0.005 m3/m3` or Pearson r > 0.995 with |mean bias| < 0.005. Keep the copy with the best provenance
+    (priority: repository dataset > supplementary file > table parse > vector extraction > raster extraction
+    > VLM) and link the rest with `duplicate_of`.
+
+    LEVEL 6 — STUDY-level grouping for splits: build a `study_group_id` by clustering on (rounded lat/lon
+    to 0.01°, site name normalized, institution, crop, years). Make your train/val/test split GROUP-WISE
+    on `study_group_id` (and ideally spatially blocked — leave whole regions out), never randomly over
+    rows. Use `sklearn.model_selection.GroupKFold` / `GroupShuffleSplit`.
+
+    Dataset↔paper linking: use DataCite `relatedIdentifiers` (IsSupplementTo / IsSourceOf), Crossref `relation`,
+    and Scholix (https://api.scholexplorer.openaire.eu/v3/Links?sourcePid=<doi>) to resolve which repository
+    dataset belongs to which paper, so you prefer the deposited numbers over the digitized figure.'
+  confidence: recalled
+  priority: 1
+  libraries:
+  - rapidfuzz
+  - datasketch
+  - imagehash
+  - sentence-transformers
+  - networkx
+  - scikit-learn
+  - duckdb
+  pitfalls: 'Never dedupe by title alone — ''Effects of deficit irrigation on soil water content and yield
+    of maize'' is a title used by dozens of distinct studies. Group-wise splitting is non-negotiable;
+    random row splits will give you a fake R²=0.98. Retraction check: query Crossref `update-type:retraction`
+    and the Retraction Watch database (now distributed free via Crossref) and purge retracted papers''
+    contributions.'
+- name: Automated rejection of bad extractions — physical, structural and cross-method checks
+  what: A deterministic gauntlet every extracted series must pass before entering the training set, plus
+    a triage queue for the ones that fail.
+  why: A single mis-calibrated axis can inject thousands of physically impossible values. In an ML training
+    set these are worse than missing data. Automated rejection plus a human review queue for the top-N
+    suspicious cases is how you get a dataset you can defend.
+  how: 'PHYSICAL RANGE CHECKS (reject or flag):
+
+    - Volumetric water content: 0.00 ≤ θv ≤ 0.65 m³/m³. Hard reject outside [-0.02, 0.75]. Additionally
+    reject if θv > porosity estimated from bulk density (`φ = 1 - ρb/2.65`) by more than 0.05.
+
+    - If values are in 0-65 with unit ''%'', divide by 100; if in 0-0.65 with unit ''%'', the unit label
+    is wrong — flag.
+
+    - Gravimetric: 0 ≤ θg ≤ 0.60 g/g (peat can exceed; gate on soil type).
+
+    - Storage: 0 ≤ S ≤ 0.65 × depth_mm.
+
+    - Matric potential: -1500 ≤ ψ ≤ 0 kPa (reject positive matric potential unless clearly labelled as
+    tension/suction magnitude, in which case flip sign).
+
+    - Relative extractable water / saturation: 0-1 or 0-100%.
+
+    UNIT AUTO-DETECTION as a check: histogram the series; if median ∈ [0.05,0.55] → m³/m³; if ∈ [5,55]
+    → percent; if ∈ [50,400] → mm storage; if negative and |·| ∈ [1,1500] → kPa. If the detected unit
+    disagrees with the OCR''d axis title, flag `unit_inferred_not_stated` and route to VLM.
+
+
+    STRUCTURAL CHECKS:
+
+    - Number of extracted series must equal the number of legend entries (±0). Mismatch ⇒ flag 2048/8.
+
+    - Every point must lie inside the axis limits; points outside ⇒ clipped extraction bug.
+
+    - x must be monotone non-decreasing for a time series after sorting; >5% duplicate x values with materially
+    different y ⇒ two series merged.
+
+    - Axis fit R² ≥ 0.999 and tick count ≥ 3; else reject the figure entirely.
+
+    - Series y-range must span > 2% of the axis range (a flat line at exactly one value is usually a mis-detected
+    gridline or axis).
+
+    - Sampling density: a soil moisture time series with 3 points over a season is probably a bar chart
+    misread; require ≥ 8 points for a time series unless `chart_type==''bar''`.
+
+    - Temporal plausibility: consecutive daily Δθv should rarely exceed +0.25 (a wetting event) or -0.10
+    (drying) in a day; count violations and reject if > 5% of steps. Wetting spikes should coincide with
+    a rainfall/irrigation event where that data exists — this is a strong, physics-based validator.
+
+    - Depth ordering: in a multi-depth series set from the same plot, shallower depths should show HIGHER
+    temporal variance than deeper ones. Compute `var(θ)` per depth; if variance increases monotonically
+    with depth across ≥3 depths, the depth labels are probably reversed — flag for review. (This is a
+    genuinely powerful soil-physics check.)
+
+    - Depth profile plots: θ vs depth should be reasonably smooth; reject if the second difference exceeds
+    0.2 m³/m³ between adjacent depths.
+
+
+    CROSS-METHOD AGREEMENT:
+
+    - Run vector extraction, raster CV, and LineFormer where all are possible. Normalized mean abs difference
+    (divided by y-axis range) < 0.02 ⇒ accept; 0.02-0.10 ⇒ VLM adjudication; > 0.10 ⇒ human queue.
+
+    - ROUND-TRIP VALIDATION (do this for every figure): re-render the extracted series with matplotlib
+    using the recovered axis limits, rasterize at the same size, and compute (a) IoU between the rendered
+    series mask and the original series mask, (b) mean nearest-neighbour pixel distance. Require IoU ≥
+    0.6 and mean distance ≤ 2 px. This is the single most effective automated check and it needs no ground
+    truth.
+
+    - Cross-check against reported summary statistics: if the paper''s text or a table states ''mean soil
+    water content was 0.24 m³/m³ at 0-30 cm'', compare with the mean of your digitized series; require
+    |Δ| < 0.03. Extract those statements with a regex + LLM pass over the results section.
+
+
+    GOLD-STANDARD BENCHMARK: hand-digitize (WebPlotDigitizer manual mode) 100 figures spanning vector/raster,
+    colour/grayscale, line/scatter, linear/log. Use them as a regression test suite — every pipeline change
+    must not degrade median absolute error, and you report this MAE in the dataset paper. Target: median
+    |error| < 1% of the y-axis range for raster, < 0.01% for vector.
+
+
+    TRIAGE UI: build a tiny review tool (Streamlit or an HTML page) showing the original figure, the overlaid
+    extraction, the flags, and accept/fix/reject buttons. Sort the queue by (n_points_affected × flag_severity)
+    so a human hour fixes the most data. Log every human decision as training data for a learned reject
+    classifier.'
+  confidence: recalled
+  priority: 1
+  libraries:
+  - numpy
+  - scipy
+  - matplotlib
+  - scikit-image
+  - pandera
+  - great-expectations
+  - streamlit
+  - duckdb
+  pitfalls: Do not hard-delete rejected extractions — store them with flags so you can re-process after
+    a pipeline fix; a rejected figure re-extracted correctly later is free data. Beware over-aggressive
+    range checks on saline/sodic or organic soils, and on rice paddies where θv near saturation (0.55-0.65)
+    is entirely normal. The depth-variance check fails for subsurface drip, where the wetted bulb can
+    make a mid-profile depth the most variable — apply it only for surface-applied irrigation.
+- name: Orchestration, storage and scale engineering
+  what: 'How to actually run this over hundreds of thousands of PDFs without it collapsing: a content-addressed
+    store, an idempotent task graph, caching, and cost control.'
+  why: The failure mode of literature-mining projects is not the algorithms, it's the operations — a crawl
+    that dies at 60% with no resume, a reprocess that re-downloads 2 TB, an LLM bill that surprises you.
+    Getting this right is what turns the spec into a working terabyte dataset.
+  how: 'STORAGE: content-addressed blob store keyed by SHA-256 (`blobs/<sha[:2]>/<sha[2:4]>/<sha>`) for
+    PDFs, figure images and supplementary files; a `manifest` Parquet table mapping paper_uid→blob. Metadata
+    and extracted observations in Parquet partitioned by `year` and `source_api`, queried with DuckDB.
+    At the point where DuckDB strains (>1-2 TB), move to Parquet on S3 + DuckDB/Polars with predicate
+    pushdown, or Postgres+TimescaleDB for the observation table.
+
+    ORCHESTRATION: Prefect or Dagster (better lineage/asset model for this) with one asset per stage:
+    discover → resolve_oa → download_pdf → parse_grobid → extract_figures → classify_figure → digitize
+    → validate → normalize → load. Every stage keyed by input hash so re-runs are incremental. Alternatively
+    a simple SQLite/Postgres work-queue table with states {pending, running, done, failed, needs_review}
+    and a `attempts` counter — honestly sufficient and far easier to debug.
+
+    CONCURRENCY: async httpx with a per-host semaphore and per-host token bucket (OpenAlex 10/s, Crossref
+    50/s polite, Europe PMC 3/s, NCBI 10/s with key, arXiv 1 per 3s, Zenodo 0.5/s, CORE 0.5/s). `aiolimiter`
+    or a small Redis-backed leaky bucket. Persist a robots/ToS note per host.
+
+    RESPECTFUL CRAWLING: always set `User-Agent: SoilMoistureLitMiner/0.1 (+https://yourlab.example; mailto:you@example.com)`.
+    Never bypass paywalls. Only download from OA locations with a licence that permits it; for closed
+    papers, mine text/figures under your institution''s TDM rights and store only the DERIVED numbers,
+    never the source PDF, in the public release.
+
+    CACHING: `hishel` or `requests-cache` for all API GETs with a 30-day TTL; cache VLM calls by (model,
+    prompt_hash, image_sha256) in a local KV store. On a 100k-figure corpus, the cache is the difference
+    between a $500 and a $5,000 LLM bill.
+
+    COMPUTE: figure digitization is embarrassingly parallel and CPU-bound — use `multiprocessing` / Ray
+    with one worker per core; Grobid in a separate container scaled horizontally; GPU only for LineFormer
+    and any VLM you self-host.
+
+    OBSERVABILITY: per-stage counters (attempted / succeeded / flagged / rejected) written to a metrics
+    table; a daily HTML report of yield by source and by journal so you can see which publishers your
+    pipeline is silently failing on.
+
+    STAGED ROLLOUT: build and validate the whole pipeline on 200 papers you know well (your own field,
+    where you can check the numbers), then 5,000, then full scale. Do not write the scaling layer before
+    the extraction layer works.'
+  confidence: recalled
+  priority: 2
+  libraries:
+  - prefect
+  - dagster
+  - duckdb
+  - polars
+  - pyarrow
+  - httpx
+  - aiolimiter
+  - hishel
+  - ray
+  - tenacity
+  - pydantic
+  - boto3
+  pitfalls: 'Plan disk from the start: ~1 MB/PDF × 300k papers = 300 GB, plus rendered figure crops at
+    600 DPI (~2-5 MB each) which can easily exceed the PDFs. Render crops lazily and delete after extraction,
+    keeping only the hash and the numbers. Publisher rate limiting will get your institutional IP blocked
+    if you hammer sciencedirect — never crawl publisher sites directly; go through OA locations only.'

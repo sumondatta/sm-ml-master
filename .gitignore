@@ -1,0 +1,51 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.env
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Data — never commit harvested data or PDFs
+data/raw/**
+data/interim/**
+data/processed/**
+data/external/**
+data/literature/**
+!data/**/.gitkeep
+*.parquet
+*.duckdb
+*.nc
+*.tif
+*.pdf
+!docs/**/*.pdf
+
+# Model artifacts / studies. The figures, result tables and the folder's own
+# README are small and are the deliverable, so they are kept; the database and
+# the Optuna studies are large and regenerable, so they are not.
+artifacts/**
+!artifacts/README.md
+!artifacts/figures/
+!artifacts/figures/*.png
+!artifacts/results/
+!artifacts/results/*.csv
+!artifacts/results/*.yaml
+!artifacts/results/*.json
+runs/
+mlruns/
+*.ckpt
+*.pt
+*.joblib
+optuna*.db
+
+# Generated test fixtures — make_thesis_pdf.py rebuilds them
+tests/fixtures/*.npy
+tests/fixtures/thesis_appendix.pdf
